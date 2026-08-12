@@ -27,7 +27,7 @@
                 <tr>
                     <td><?= htmlspecialchars($cita['fecha']) ?></td>
                     <td><?= htmlspecialchars(substr($cita['hora'], 0, 5)) ?></td>
-                    <td><?= htmlspecialchars($cita['mascota_nombre']) ?></td>
+                    <td><?= htmlspecialchars($cita['nombre_mascota']) ?></td>
                     <td><?= htmlspecialchars($cita['tipo_consulta']) ?></td>
                     <td><?= htmlspecialchars(ucfirst($cita['estado'])) ?></td>
                     <td>
@@ -35,8 +35,8 @@
                             <a href="/cita/mostrarReagendar/<?= $cita['id'] ?>">Reagendar</a>
                             |
                             <a href="/cita/cancelar/<?= $cita['id'] ?>"
-                               onclick="return confirm('¿Seguro que deseas cancelar esta cita?')">
-                               Cancelar
+                                onclick="return confirm('¿Seguro que deseas cancelar esta cita?')">
+                                Cancelar
                             </a>
                         <?php else: ?>
                             —

@@ -149,7 +149,7 @@ class CitaController extends Controller
         $this->vista('citas/reagendar', ['cita' => $cita]);
     }
 
-    // HU-04 Esc.7: procesa el reagendamiento
+    // HU-04 Esc.7: procesa el reagendamiento (crea una cita nueva, no sobrescribe la original)
     public function reagendar(int $id): void
     {
         $this->requiereSesion();
@@ -174,7 +174,9 @@ class CitaController extends Controller
             return;
         }
 
-        $this->citaModel->reagendar($id, $nuevaFecha, $nuevaHora);
+        // Se le pasa la cita ORIGINAL completa: el Model la necesita para copiar
+        // mascota_id, veterinario_id, tipo_consulta, etc. hacia la fila nueva
+        $this->citaModel->reagendar($cita, $nuevaFecha, $nuevaHora);
         $_SESSION['mensaje'] = 'La cita fue reagendada correctamente.';
         $this->redireccionar('/cita');
     }
