@@ -1,32 +1,38 @@
 <?php
 $mascota = $mascota ?? ['id' => 0, 'nombre' => ''];
 $error = $error ?? null;
+
+$tituloPagina = 'Registrar Entrada Clínica';
+require __DIR__ . '/../partials/header.php';
 ?>
 
 <h1>Registrar Entrada Clínica — <?= htmlspecialchars($mascota['nombre']) ?></h1>
 
-<?php if (!empty($error)): ?>
-    <p style="color:red;"><?= htmlspecialchars($error) ?></p>
-<?php endif; ?>
+<div class="tarjeta" data-etiqueta="Nueva entrada">
+    <?php if (!empty($error)): ?>
+        <p class="mensaje mensaje-error"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
 
-<form action="/historial/crear/<?= (int) $mascota['id'] ?>" method="POST">
-    <label>Motivo de consulta:<br>
-        <input type="text" name="motivo_consulta" required style="width:100%;">
-    </label><br><br>
+    <form action="/historial/crear/<?= (int) $mascota['id'] ?>" method="POST">
+        <label>Motivo de consulta:
+            <input type="text" name="motivo_consulta" required>
+        </label>
 
-    <label>Diagnóstico:<br>
-        <textarea name="diagnostico" rows="4" required style="width:100%;"></textarea>
-    </label><br><br>
+        <label>Diagnóstico:
+            <textarea name="diagnostico" rows="4" required></textarea>
+        </label>
 
-    <label>Tratamiento:<br>
-        <textarea name="tratamiento" rows="4" required style="width:100%;"></textarea>
-    </label><br><br>
+        <label>Tratamiento:
+            <textarea name="tratamiento" rows="4" required></textarea>
+        </label>
 
-    <label>Observaciones (opcional):<br>
-        <textarea name="observaciones" rows="3" style="width:100%;"></textarea>
-    </label><br><br>
+        <label>Observaciones (opcional):
+            <textarea name="observaciones" rows="3"></textarea>
+        </label>
 
-    <button type="submit">Guardar</button>
-</form>
+        <button type="submit">Guardar</button>
+        <a href="/historial/verHistorial/<?= (int) $mascota['id'] ?>" class="boton" style="background:var(--color-borde); color:var(--color-tinta);">Cancelar</a>
+    </form>
+</div>
 
-<a href="/historial/verHistorial/<?= (int) $mascota['id'] ?>">Cancelar y volver</a>
+<?php require __DIR__ . '/../partials/footer.php'; ?>

@@ -3,7 +3,31 @@ abstract class Controller
 {
     protected function vista(string $ruta, array $datos = []): void
     {
+        // Definir valores por defecto para evitar "undefined variable" en las vistas
+        $defaults = [
+            'error' => null,
+            'mensaje' => null,
+            'roles' => [],
+            'usuarios' => [],
+            'mascotas' => [],
+            'mascota' => null,
+            'citasProximas' => [],
+            'cita' => [],
+            'veterinarios' => [],
+            'totalMascotas' => 0,
+            'totalUsuarios' => 0,
+            'tituloPagina' => '',
+            'titulo' => '',
+            'nombre' => '',
+            'rolId' => null,
+            'usuario' => [],
+            'sugerencias' => [],
+        ];
+
+        // Primero extraemos los defaults y luego los datos pasados por el controlador
+        extract($defaults);
         extract($datos);
+
         $archivo = __DIR__ . '/../Views/' . $ruta . '.php';
         if (!file_exists($archivo)) {
             die("Vista no encontrada: $ruta");

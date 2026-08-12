@@ -3,21 +3,21 @@
    ========================================================================== */
 
 :root {
-    --color-papel: #F6F3ED;
-    --color-pino: #1F3D2E;
-    --color-pino-claro: #2E5843;
-    --color-caléndula: #E2A63B;
-    --color-salvia: #7BA88B;
-    --color-baya: #B23A48;
-    --color-tinta: #1B2430;
-    --color-borde: #DCD5C7;
+    --color-papel: #EEF3F8;
+    --color-marino: #1B3A5C;
+    --color-marino-claro: #2C5A87;
+    --color-cian: #2F9BD6;
+    --color-cielo: #8FC7E8;
+    --color-coral: #C0392B;
+    --color-tinta: #16283A;
+    --color-borde: #CBDCE9;
     --color-blanco: #FFFFFF;
 
     --fuente-titulo: 'Fraunces', Georgia, serif;
     --fuente-cuerpo: 'Inter', -apple-system, sans-serif;
 
     --radio: 8px;
-    --sombra: 0 2px 8px rgba(31, 61, 46, 0.08);
+    --sombra: 0 2px 8px rgba(27, 58, 92, 0.10);
 }
 
 * { box-sizing: border-box; }
@@ -32,24 +32,24 @@ body {
 
 h1, h2, h3 {
     font-family: var(--fuente-titulo);
-    color: var(--color-pino);
+    color: var(--color-marino);
     margin-top: 0;
 }
 
 a {
-    color: var(--color-pino-claro);
+    color: var(--color-marino-claro);
     text-decoration: none;
 }
 a:hover { text-decoration: underline; }
 a:focus-visible, button:focus-visible, input:focus-visible,
 select:focus-visible, textarea:focus-visible {
-    outline: 3px solid var(--color-caléndula);
+    outline: 3px solid var(--color-cian);
     outline-offset: 2px;
 }
 
-/* ---------- Barra de navegación ---------- */
+/* ---------- Barra de navegación (solo se usa sin sesión: login/registro) ---------- */
 .barra-nav {
-    background: var(--color-pino);
+    background: var(--color-marino);
     padding: 14px 24px;
     display: flex;
     align-items: center;
@@ -75,7 +75,90 @@ select:focus-visible, textarea:focus-visible {
 .barra-nav nav a:hover {
     opacity: 1;
     text-decoration: none;
-    color: var(--color-caléndula);
+    color: var(--color-cian);
+}
+
+/* ---------- Layout con sidebar (cuando hay sesión activa) ---------- */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.barra-lateral {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--color-marino);
+    color: var(--color-papel);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+}
+.barra-lateral .marca {
+    font-family: var(--fuente-titulo);
+    font-size: 1.2rem;
+    padding: 0 20px 24px;
+}
+.barra-lateral nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+.barra-lateral nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--color-papel);
+    opacity: 0.8;
+    border-left: 3px solid transparent;
+}
+.barra-lateral nav a:hover,
+.barra-lateral nav a.activo {
+    opacity: 1;
+    text-decoration: none;
+    background: var(--color-marino-claro);
+    border-left-color: var(--color-cian);
+}
+.barra-lateral .icono {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+.barra-lateral .cerrar-sesion {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: var(--color-papel);
+    opacity: 0.7;
+}
+.barra-lateral .cerrar-sesion:hover {
+    opacity: 1;
+    text-decoration: none;
+    color: var(--color-cian);
+}
+
+.app-layout .contenedor {
+    flex: 1;
+    margin: 0;
+    max-width: none;
+}
+
+@media (max-width: 640px) {
+    .app-layout { flex-direction: column; }
+    .barra-lateral {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        padding: 8px 12px;
+        overflow-x: auto;
+    }
+    .barra-lateral .marca { display: none; }
+    .barra-lateral nav { flex-direction: row; }
+    .barra-lateral nav a span:last-child { display: none; }
+    .barra-lateral .cerrar-sesion { margin-top: 0; margin-left: auto; }
+    .barra-lateral .cerrar-sesion span:last-child { display: none; }
 }
 
 /* ---------- Contenedor de página ---------- */
@@ -100,7 +183,7 @@ select:focus-visible, textarea:focus-visible {
     position: absolute;
     top: -26px;
     left: 0;
-    background: var(--color-pino);
+    background: var(--color-marino);
     color: var(--color-papel);
     font-family: var(--fuente-cuerpo);
     font-size: 0.72rem;
@@ -118,8 +201,8 @@ select:focus-visible, textarea:focus-visible {
     margin-bottom: 16px;
     font-size: 0.95rem;
 }
-.mensaje-exito { background: #E9F2ED; color: #2F5C43; border: 1px solid var(--color-salvia); }
-.mensaje-error { background: #FAEAEC; color: var(--color-baya); border: 1px solid var(--color-baya); }
+.mensaje-exito { background: #E6F2FA; color: #1B3A5C; border: 1px solid var(--color-cielo); }
+.mensaje-error { background: #FBEAE8; color: var(--color-coral); border: 1px solid var(--color-coral); }
 
 /* ---------- Formularios ---------- */
 label {
@@ -129,7 +212,7 @@ label {
     margin-bottom: 6px;
 }
 input[type=text], input[type=email], input[type=password],
-input[type=date], input[type=tel], select, textarea {
+input[type=date], input[type=tel], input[type=number], select, textarea {
     width: 100%;
     padding: 10px 12px;
     margin-bottom: 18px;
@@ -144,7 +227,7 @@ textarea { resize: vertical; }
 
 button, .boton {
     display: inline-block;
-    background: var(--color-pino);
+    background: var(--color-marino);
     color: var(--color-papel);
     border: none;
     padding: 11px 22px;
@@ -156,8 +239,9 @@ button, .boton {
     transition: background 0.15s ease;
 }
 button:hover, .boton:hover {
-    background: var(--color-pino-claro);
+    background: var(--color-marino-claro);
     text-decoration: none;
+    color: var(--color-papel);
 }
 
 /* ---------- Tablas ---------- */
@@ -176,14 +260,14 @@ th, td {
     font-size: 0.92rem;
 }
 th {
-    background: var(--color-pino);
+    background: var(--color-marino);
     color: var(--color-papel);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.04em;
 }
-tbody tr:hover { background: #FBF9F4; }
+tbody tr:hover { background: #F3F8FC; }
 
 /* ---------- Utilidades ---------- */
 .acciones a { margin-right: 10px; }
@@ -194,6 +278,11 @@ tbody tr:hover { background: #FBF9F4; }
     thead { display: none; }
     tr { margin-bottom: 14px; border: 1px solid var(--color-borde); border-radius: var(--radio); padding: 8px; }
     td { border: none; padding: 6px 8px; }
+    td[data-etiqueta]::before {
+        content: attr(data-etiqueta) ": ";
+        font-weight: 600;
+        color: var(--color-marino);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

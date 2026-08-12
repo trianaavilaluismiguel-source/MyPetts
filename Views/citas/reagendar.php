@@ -1,19 +1,18 @@
 <?php
-$cita = $cita ?? null;
-$error = $error ?? null;
-$sugerencias = $sugerencias ?? [];
+$tituloPagina = 'Reagendar Cita';
+require __DIR__ . '/../partials/header.php';
 ?>
 
 <h1>Reagendar Cita</h1>
 
-<?php if ($cita): ?>
+<div class="tarjeta" data-etiqueta="Cita actual">
     <p>
-        Cita actual: <?= htmlspecialchars($cita['fecha']) ?> a las <?= htmlspecialchars(substr($cita['hora'], 0, 5)) ?>
-        (<?= htmlspecialchars($cita['tipo_consulta']) ?>)
+        <?= htmlspecialchars($cita['fecha'] ?? '') ?> a las <?= htmlspecialchars(substr($cita['hora'] ?? '', 0, 5)) ?>
+        (<?= htmlspecialchars($cita['tipo_consulta'] ?? '') ?>)
     </p>
 
     <?php if (!empty($error)): ?>
-        <p style="color:red;"><?= htmlspecialchars($error) ?></p>
+        <p class="mensaje mensaje-error"><?= htmlspecialchars($error) ?></p>
 
         <?php if (!empty($sugerencias)): ?>
             <p>Próximos horarios disponibles con ese veterinario:</p>
@@ -25,10 +24,10 @@ $sugerencias = $sugerencias ?? [];
         <?php endif; ?>
     <?php endif; ?>
 
-    <form action="/cita/reagendar/<?= (int) $cita['id'] ?>" method="POST">
+    <form action="/cita/reagendar/<?= (int) ($cita['id'] ?? 0) ?>" method="POST">
         <label>Nueva fecha:
             <input type="date" name="fecha" required>
-        </label><br>
+        </label>
 
         <label>Nueva hora:
             <select name="hora" required>
@@ -44,12 +43,11 @@ $sugerencias = $sugerencias ?? [];
                 <option value="16:00:00">4:00 PM</option>
                 <option value="17:00:00">5:00 PM</option>
             </select>
-        </label><br>
+        </label>
 
         <button type="submit">Confirmar reagendamiento</button>
+        <a href="/cita" class="boton" style="background:var(--color-borde); color:var(--color-tinta);">Cancelar</a>
     </form>
-<?php else: ?>
-    <p>No se encontró la cita solicitada.</p>
-<?php endif; ?>
+</div>
 
-<a href="/cita">Cancelar y volver a la lista</a>
+<?php require __DIR__ . '/../partials/footer.php'; ?>

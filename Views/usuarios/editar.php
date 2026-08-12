@@ -10,7 +10,7 @@ $usuario = $usuario ?? [];
     <p style="color:red;"><?= htmlspecialchars($error) ?></p>
 <?php endif; ?>
 
-<form action="/usuario/editar/<?= (int) $usuario['id'] ?>" method="POST">
+<form action="/usuario/editar/<?= (int) ($usuario['id'] ?? 0) ?>" method="POST">
     <label>Nombre:<br>
         <input type="text" name="nombre" value="<?= htmlspecialchars($usuario['nombre'] ?? '') ?>" required style="width:100%;">
     </label><br><br>

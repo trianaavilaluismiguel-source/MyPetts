@@ -1,16 +1,17 @@
 <?php
 $registros = $registros ?? [];
 $mensaje = $mensaje ?? null;
+$mascota = $mascota ?? [];
 ?>
 
-<h1>Vacunas y Desparasitaciones — <?= htmlspecialchars($mascota['nombre']) ?></h1>
+<h1>Vacunas y Desparasitaciones — <?= htmlspecialchars($mascota['nombre'] ?? '') ?></h1>
 
 <?php if (!empty($mensaje)): ?>
     <p style="color:green;"><?= htmlspecialchars($mensaje) ?></p>
 <?php endif; ?>
 
-<?php if ($_SESSION['rol_id'] == 2): ?>
-    <a href="/vacuna/mostrarCrear/<?= (int) $mascota['id'] ?>">Registrar vacuna/desparasitación</a>
+<?php if (isset($_SESSION['rol_id']) && $_SESSION['rol_id'] == 2): ?>
+    <a href="/vacuna/mostrarCrear/<?= (int) ($mascota['id'] ?? 0) ?>">Registrar vacuna/desparasitación</a>
 <?php endif; ?>
 
 <?php if (empty($registros)): ?>
@@ -50,6 +51,6 @@ $mensaje = $mensaje ?? null;
     </table>
 <?php endif; ?>
 
-<a href="/historial/verHistorial/<?= (int) $mascota['id'] ?>">Ver historial clínico</a>
+<a href="/historial/verHistorial/<?= (int) ($mascota['id'] ?? 0) ?>">Ver historial clínico</a>
 &nbsp;|&nbsp;
 <a href="/mascota">Volver a mascotas</a>
