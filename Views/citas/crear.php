@@ -1,3 +1,10 @@
+<?php
+$mascotas = $mascotas ?? [];
+$veterinarios = $veterinarios ?? [];
+$error = $error ?? null;
+$sugerencias = $sugerencias ?? [];
+?>
+
 <h1>Agendar Cita</h1>
 
 <?php if (!empty($error)): ?>

@@ -101,6 +101,53 @@ class Cita extends Model
         ]);
     }
 
+    // Dashboard: próximas citas agendadas de un Dueño (para su resumen de inicio)
+    public function proximasPorDueno(int $duenoId, int $limite = 5): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT c.*, m.nombre AS nombre_mascota, u.nombre AS nombre_veterinario
+            FROM citas c
+            INNER JOIN mascotas m ON m.id = c.mascota_id
+            INNER JOIN usuarios u ON u.id = c.veterinario_id
+            WHERE m.dueno_id = :dueno_id AND c.estado = 'agendada' AND c.fecha >= CURDATE()
+            ORDER BY c.fecha ASC, c.hora ASC
+            LIMIT " . (int) $limite
+        );
+        $stmt->execute(['dueno_id' => $duenoId]);
+        return $stmt->fetchAll();
+    }
+
+    // Dashboard: próximas citas asignadas a un Veterinario
+    public function proximasPorVeterinario(int $veterinarioId, int $limite = 5): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT c.*, m.nombre AS nombre_mascota, d.nombre AS nombre_dueno
+            FROM citas c
+            INNER JOIN mascotas m ON m.id = c.mascota_id
+            INNER JOIN usuarios d ON d.id = m.dueno_id
+            WHERE c.veterinario_id = :veterinario_id AND c.estado = 'agendada' AND c.fecha >= CURDATE()
+            ORDER BY c.fecha ASC, c.hora ASC
+            LIMIT " . (int) $limite
+        );
+        $stmt->execute(['veterinario_id' => $veterinarioId]);
+        return $stmt->fetchAll();
+    }
+
+    // Dashboard: agenda general próxima (para Recepcionista/Administrador)
+    public function proximasTodas(int $limite = 8): array
+    {
+        $stmt = $this->db->query(
+            "SELECT c.*, m.nombre AS nombre_mascota, v.nombre AS nombre_veterinario
+            FROM citas c
+            LEFT JOIN mascotas m ON m.id = c.mascota_id
+            LEFT JOIN usuarios v ON v.id = c.veterinario_id
+            WHERE c.estado = 'agendada' AND c.fecha >= CURDATE()
+            ORDER BY c.fecha ASC, c.hora ASC
+            LIMIT " . (int) $limite
+        );
+        return $stmt->fetchAll();
+    }
+
     // HU-04 Esc.7: reagendar NO sobrescribe la cita original.
     // Crea una fila nueva (enlazada por cita_origen_id) y marca la original como 'reagendada',
     // así se conserva el historial completo de cambios de una cita.
