@@ -3,7 +3,6 @@ abstract class Controller
 {
     protected function vista(string $ruta, array $datos = []): void
     {
-        // Definir valores por defecto para evitar "undefined variable" en las vistas
         $defaults = [
             'error' => null,
             'mensaje' => null,
@@ -22,17 +21,18 @@ abstract class Controller
             'rolId' => null,
             'usuario' => [],
             'sugerencias' => [],
+            'termino' => '',
         ];
 
-        // Primero extraemos los defaults y luego los datos pasados por el controlador
         extract($defaults);
         extract($datos);
 
-        $archivo = __DIR__ . '/../Views/' . $ruta . '.php';
-        if (!file_exists($archivo)) {
+        $vistaContenido = __DIR__ . '/../Views/' . $ruta . '.php';
+        if (!file_exists($vistaContenido)) {
             die("Vista no encontrada: $ruta");
         }
-        require $archivo;
+
+        require $vistaContenido;
     }
 
     protected function redireccionar(string $url): void

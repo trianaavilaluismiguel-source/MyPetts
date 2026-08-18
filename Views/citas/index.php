@@ -31,7 +31,7 @@ require __DIR__ . '/../partials/header.php';
                     <tr>
                         <td data-etiqueta="Fecha"><?= htmlspecialchars($cita['fecha']) ?></td>
                         <td data-etiqueta="Hora"><?= htmlspecialchars(substr($cita['hora'], 0, 5)) ?></td>
-                        <td data-etiqueta="Mascota"><?= htmlspecialchars($cita['mascota_nombre']) ?></td>
+                        <td data-etiqueta="Mascota"><?= htmlspecialchars($cita['nombre_mascota']) ?></td>
                         <td data-etiqueta="Tipo"><?= htmlspecialchars($cita['tipo_consulta']) ?></td>
                         <td data-etiqueta="Estado"><?= htmlspecialchars(ucfirst($cita['estado'])) ?></td>
                         <td class="acciones" data-etiqueta="Acciones">

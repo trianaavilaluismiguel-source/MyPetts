@@ -1,222 +1,100 @@
 # Documentación de Controllers
 
-## 1. ¿Qué hace una capa de controladores?
+## 1. Propósito
 
-Los controladores son la capa intermedia entre:
+Los controladores son la capa intermedia entre la URL, el modelo y la vista. En este proyecto cada entidad principal tiene un controlador de la forma `NombreController` dentro de `Controllers/`.
 
-- la URL enviada por el navegador,
-- el modelo que accede a la base de datos,
-- la vista que renderiza la respuesta HTML.
-
-En este proyecto, cada entidad tiene su propio controlador:
+Los controladores más relevantes son:
 
 - `AuthController`
+- `DashboardController`
 - `MascotaController`
 - `CitaController`
-- `DashboardController`
 - `UsuarioController`
 - `HistorialController`
 - `VacunaController`
 
-## 2. Clase base `Controller`
+## 2. Base `Controller`
 
-Archivo: `Controllers/Controller.php`
+El archivo `Controllers/Controller.php` centraliza la lógica reutilizable:
 
-Esta clase abstracta centraliza métodos reutilizables para todos los controladores. Los principales son:
+- `vista(string $ruta, array $datos = [])`
+- `redireccionar(string $url)`
+- `json(array $datos, int $codigo = 200)`
+- `requiereSesion(array $rolesPermitidos = [])`
 
-### `vista(string $ruta, array $datos = [])`
+### `vista()`
 
-```php
-protected function vista(string $ruta, array $datos = []): void
-```
-
-Esta función:
-
-- prepara variables por defecto,
-- hace `extract($datos)`,
-- busca la vista en `Views/...`,
-- incluye el archivo PHP de la vista.
-
-Ejemplo:
+La vista se incluye directamente con PHP, sin un layout global. Esto elimina la doble capa de render y evita que una vista se cargue dentro de un layout antiguo que ya no existe.
 
 ```php
-$this->vista('dashboard/index', ['nombre' => 'Ana']);
+$this->vista('auth/login', ['error' => 'Acceso denegado.']);
 ```
 
-Eso significa que en la vista se puede usar directamente `$nombre` sin pasar por un objeto complicado.
+### `requiereSesion()`
 
-### `redireccionar(string $url)`
-
-```php
-header("Location: $url");
-exit;
-```
-
-Sirve para redirigir al usuario a otra ruta, por ejemplo:
-
-- `/dashboard`
-- `/auth`
-- `/cita`
-
-### `json(array $datos, int $codigo = 200)`
-
-Genera una respuesta JSON con el código HTTP indicado.
-
-### `requiereSesion(array $rolesPermitidos = [])`
-
-Este método valida sesión:
-
-```php
-session_start();
-if (!isset($_SESSION['usuario_id'])) {
-    $this->redireccionar('/auth');
-}
-```
-
-Y si se le pasa un conjunto de roles, también comprueba si el usuario tiene permiso.
+Valida que exista una sesión activa. Si no, redirige a `/auth`.
 
 ## 3. `AuthController`
 
-Archivo: `Controllers/AuthController.php`
+Coordinación de login, registro, cambio de contraseña y cierre de sesión.
 
-### Responsabilidad
+### Funciones clave
 
-Toda la autenticación del sistema:
+- `index()` -> muestra login
+- `mostrarRegistro()` -> muestra registro
+- `registro()` -> alterna entre mostrar el formulario y procesar el POST
+- `registrar()` -> valida campos, contraseña y correo duplicado
+- `login()` -> autentica con hash y crea la sesión
+- `olvidePassword()` -> muestra la vista de recuperación / cambio de contraseña
+- `mostrarCambioPassword()` -> formulario de cambio obligatorio
+- `cambiarPassword()` -> actualiza contraseña y quita la obligación
+- `logout()` -> destruye sesión
 
-- mostrar login,
-- registrar usuarios,
-- iniciar sesión,
-- cambiar contraseña,
-- cerrar sesión.
+La autenticación sigue un flujo claro:
 
-### `index()`
+1. usuario entra al login,
+2. si necesita registro, pasa a la pantalla de alta,
+3. luego inicia sesión y, si aplica, cambia la contraseña temporal,
+4. finalmente accede al dashboard.
 
-Muestra la vista de login.
+## 4. `DashboardController`
 
-### `mostrarRegistro()`
+Prepara el contenido principal del panel según el rol del usuario.
 
-Muestra el formulario de registro.
+- Dueño: mascotas y próximas citas
+- Veterinario: su agenda
+- Staff: resumen general y agenda del sistema
 
-### `registrar()`
+## 5. `MascotaController`
 
-Valida:
+Gestiona el ciclo completo de mascotas:
 
-- campos obligatorios,
-- fortaleza de contraseña,
-- coincidencia entre contraseña y confirmación,
-- correo duplicado,
-- rol por defecto para dueño de mascota.
+- listar
+- buscar
+- crear
+- editar
+- dar de baja
+- reactivar si aplica
 
-Si todo es correcto, crea al usuario con `rol_id = 4` (DueñoMascota).
+## 6. `CitaController`
 
-### `login()`
+Gestiona citas veterinarias:
 
-- recoge correo y contraseña,
-- busca el usuario por email,
-- valida hash de contraseña,
-- verifica si usuario está activo,
-- revisa bloqueo temporal por muchos intentos fallidos,
-- guarda datos en sesión.
+- listar por rol
+- crear
+- validar horarios
+- sugerir horarios alternativos si está ocupado
+- cancelar con regla de 24 horas
+- reagendar conservando historial
 
-Ejemplo de sesión:
+## 7. Buenas prácticas del proyecto
 
-```php
-$_SESSION['usuario_id'] = $usuario['id'];
-$_SESSION['nombre'] = $usuario['nombre'];
-$_SESSION['rol_id'] = $usuario['rol_id'];
-```
-
-### `mostrarCambioPassword()`
-
-Muestra formulario para cambiar contraseña temporal.
-
-### `cambiarPassword()`
-
-Verifica la nueva contraseña, la confirma y actualiza en base de datos.
-
-### `logout()`
-
-Destruye la sesión y redirige al login.
-
-## 4. `MascotaController`
-
-Archivo: `Controllers/MascotaController.php`
-
-### Responsabilidad
-
-Gestión de mascotas y su ciclo de vida.
-
-### `index()`
-
-- exige sesión,
-- si el rol es `DueñoMascota`, carga solo sus mascotas,
-- si es staff, carga todas las activas,
-- muestra mensaje flash desde sesión.
-
-### `mostrarCrear()`
-
-Muestra formulario para registrar una mascota.
-
-### `crear()`
-
-Valida datos obligatorios y guarda la mascota vinculada al usuario autenticado.
-
-### `mostrarEditar(int $id)`
-
-Busca la mascota por ID y la envía a la vista de edición.
-
-### `editar(int $id)`
-
-Valida los datos y actualiza el registro.
-
-### `eliminar(int $id)`
-
-En lugar de borrar físicamente la mascota, la da de baja con lógica (`activa = 0`).
-
-### `buscar()`
-
-Busca mascotas por texto y reusa la vista de listado.
-
-## 5. `CitaController`
-
-Archivo: `Controllers/CitaController.php`
-
-### Responsabilidad
-
-Administrar citas veterinarias.
-
-### `index()`
-
-Dependiendo del rol:
-
-- Dueño: muestra sus citas,
-- Veterinario: muestra citas asignadas,
-- default: muestra todas.
-
-### `mostrarCrear()`
-
-Crea la vista de agendamiento con:
-
-- lista de mascotas del usuario o del sistema,
-- lista de veterinarios disponibles.
-
-### `crear()`
-
-Valida que todos los campos existan y que el horario esté disponible.
-
-Si el horario está ocupado, genera sugerencias de horarios libres.
-
-### `recargarFormularioConError()`
-
-Método privado para volver a mostrar el formulario con errores y sugerencias.
-
-### `cancelar(int $id)`
-
-Antes de cancelar, comprueba si faltan más de 24 horas para la cita. Si no, se rechaza la cancelación.
-
-### `mostrarReagendar(int $id)`
-
-Carga la edición para reagendar una cita.
+- La lógica de negocio va en el controlador.
+- Las consultas van en el modelo.
+- Las vistas solo renderizan HTML y mensajes.
+- Las redirecciones se hacen con `Location` y `exit`.
+- La seguridad de sesiones debe comprobarse en cada acción sensible.
 
 ### `reagendar(int $id)`
 
