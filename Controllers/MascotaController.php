@@ -16,18 +16,24 @@ class MascotaController extends Controller
     {
         $this->requiereSesion();
 
+        $termino = trim($_GET['busqueda'] ?? '');
+
         // rol_id = 4 -> DueñoMascota (según tu catálogo de roles)
         if ($_SESSION['rol_id'] == 4) {
-            $mascotas = $this->mascotaModel->buscarPorDueno($_SESSION['usuario_id']);
+            $mascotas = $termino !== ''
+                ? $this->mascotaModel->buscar($termino)
+                : $this->mascotaModel->buscarPorDueno($_SESSION['usuario_id']);
         } else {
-            $mascotas = $this->mascotaModel->todosActivos();
+            $mascotas = $termino !== ''
+                ? $this->mascotaModel->buscar($termino)
+                : $this->mascotaModel->todosActivos();
         }
 
         // Mensaje de confirmación (flash message) dejado por crear/editar/eliminar
         $mensaje = $_SESSION['mensaje'] ?? null;
         unset($_SESSION['mensaje']);
 
-        $this->vista('mascotas/index', ['mascotas' => $mascotas, 'mensaje' => $mensaje]);
+        $this->vista('mascotas/index', ['mascotas' => $mascotas, 'mensaje' => $mensaje, 'termino' => $termino]);
     }
 
     // Muestra el formulario para registrar una mascota nueva
@@ -83,6 +89,8 @@ class MascotaController extends Controller
             return;
         }
 
+        $this->verificarPropiedad($mascota);
+
         $this->vista('mascotas/editar', ['mascota' => $mascota]);
     }
 
@@ -96,6 +104,8 @@ class MascotaController extends Controller
             $this->redireccionar('/mascota');
             return;
         }
+
+        $this->verificarPropiedad($mascota);
 
         $nombre          = trim($_POST['nombre'] ?? '');
         $especie         = trim($_POST['especie'] ?? '');
@@ -130,12 +140,35 @@ class MascotaController extends Controller
     }
 
     // HU-03 Esc.7: baja lógica (no elimina el registro, solo lo marca inactivo)
-    public function eliminar(int $id): void
+    public function darDeBaja(int $id): void
     {
         $this->requiereSesion();
+
+        $mascota = $this->mascotaModel->buscarPorId($id);
+        if (!$mascota) {
+            $this->redireccionar('/mascota');
+            return;
+        }
+        $this->verificarPropiedad($mascota);
+
         $this->mascotaModel->darDeBaja($id);
         $_SESSION['mensaje'] = 'La mascota fue dada de baja correctamente.';
         $this->redireccionar('/mascota');
+    }
+
+    public function eliminar(int $id): void
+    {
+        $this->darDeBaja($id);
+    }
+
+    // Un DueñoMascota (rol 4) solo puede operar sobre sus propias mascotas.
+    // El resto de roles (Admin/Veterinario/Recepcionista) tiene acceso completo.
+    private function verificarPropiedad(array $mascota): void
+    {
+        if ((int) $_SESSION['rol_id'] === 4 && (int) $mascota['dueno_id'] !== (int) $_SESSION['usuario_id']) {
+            http_response_code(403);
+            die('No tienes permiso para modificar esta mascota.');
+        }
     }
 
     // HU-03 Esc.6: búsqueda/filtro por nombre, especie o número de registro
@@ -143,7 +176,7 @@ class MascotaController extends Controller
     {
         $this->requiereSesion();
 
-        $termino = trim($_GET['q'] ?? '');
+        $termino = trim($_GET['busqueda'] ?? $_GET['q'] ?? '');
         $mascotas = $termino !== '' ? $this->mascotaModel->buscar($termino) : $this->mascotaModel->todosActivos();
 
         $this->vista('mascotas/index', ['mascotas' => $mascotas, 'termino' => $termino]);

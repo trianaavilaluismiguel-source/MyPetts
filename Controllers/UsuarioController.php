@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/Controller.php';
 require_once __DIR__ . '/../Models/Usuario.php';
+require_once __DIR__ . '/../Helpers/Mailer.php';
 
 class UsuarioController extends Controller
 {
@@ -64,9 +65,19 @@ class UsuarioController extends Controller
 
         $resultado = $this->usuarioModel->crearPorAdmin($nombre, $correo, $telefono, (int) $rolId, $_SESSION['usuario_id']);
 
-        $_SESSION['mensaje'] = 'Usuario creado correctamente. Contraseña temporal: '
+        // HU-07: envía las credenciales temporales al correo del nuevo usuario
+        Mailer::enviar(
+            $correo,
+            'Tu cuenta en MyPetts fue creada',
+            "<p>Hola <strong>" . htmlspecialchars($nombre) . "</strong>,</p>"
+            . "<p>Tu cuenta en MyPetts fue creada. Estas son tus credenciales de acceso:</p>"
+            . "<p>Correo: {$correo}<br>Contraseña temporal: <strong>{$resultado['contrasena_temporal']}</strong></p>"
+            . "<p>Se te pedirá cambiarla al iniciar sesión por primera vez.</p>"
+        );
+
+        $_SESSION['mensaje'] = 'Usuario creado correctamente. Se envió la contraseña temporal a su correo ('
             . $resultado['contrasena_temporal']
-            . ' — compártela de forma segura, se le pedirá cambiarla al iniciar sesión.';
+            . ' — visible aquí solo por si el correo no llega).';
 
         $this->redireccionar('/usuario');
     }
@@ -139,6 +150,15 @@ class UsuarioController extends Controller
         $nuevoEstado = !$usuario['activo'];
         $this->usuarioModel->cambiarEstado($id, $nuevoEstado);
 
+        // HU-07 Esc.4/Esc.5: se informa al usuario afectado por correo
+        Mailer::enviar(
+            $usuario['correo'],
+            $nuevoEstado ? 'Tu cuenta en MyPetts fue reactivada' : 'Tu cuenta en MyPetts fue desactivada',
+            $nuevoEstado
+                ? "<p>Hola <strong>" . htmlspecialchars($usuario['nombre']) . "</strong>, tu cuenta fue reactivada y ya puedes iniciar sesión con tus datos de acceso.</p>"
+                : "<p>Hola <strong>" . htmlspecialchars($usuario['nombre']) . "</strong>, tu cuenta fue desactivada temporalmente. Contacta al administrador de la clínica si tienes dudas.</p>"
+        );
+
         $_SESSION['mensaje'] = $nuevoEstado ? 'Usuario activado.' : 'Usuario desactivado.';
         $this->redireccionar('/usuario');
     }
@@ -156,9 +176,17 @@ class UsuarioController extends Controller
 
         $contrasenaTemporal = $this->usuarioModel->resetearContrasena($id);
 
-        $_SESSION['mensaje'] = 'Contraseña restablecida. Nueva contraseña temporal: '
+        Mailer::enviar(
+            $usuario['correo'],
+            'Tu contraseña en MyPetts fue restablecida',
+            "<p>Hola <strong>" . htmlspecialchars($usuario['nombre']) . "</strong>,</p>"
+            . "<p>Tu contraseña temporal es: <strong>{$contrasenaTemporal}</strong></p>"
+            . "<p>Se te pedirá cambiarla al iniciar sesión.</p>"
+        );
+
+        $_SESSION['mensaje'] = 'Contraseña restablecida. Se envió la nueva contraseña temporal a su correo ('
             . $contrasenaTemporal
-            . ' — compártela de forma segura, se le pedirá cambiarla al iniciar sesión.';
+            . ' — visible aquí solo por si el correo no llega).';
 
         $this->redireccionar('/usuario');
     }

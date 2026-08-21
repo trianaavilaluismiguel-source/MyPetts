@@ -46,17 +46,17 @@ Coordinación de login, registro, cambio de contraseña y cierre de sesión.
 - `registro()` -> alterna entre mostrar el formulario y procesar el POST
 - `registrar()` -> valida campos, contraseña y correo duplicado
 - `login()` -> autentica con hash y crea la sesión
-- `olvidePassword()` -> muestra la vista de recuperación / cambio de contraseña
-- `mostrarCambioPassword()` -> formulario de cambio obligatorio
-- `cambiarPassword()` -> actualiza contraseña y quita la obligación
+- `olvidePassword()` -> muestra la vista de cambio de contraseña
+- `mostrarCambioPassword()` -> formulario de cambio obligatorio para usuarios con contraseña temporal
+- `cambiarPassword()` -> valida la nueva contraseña, actualiza hash y quita la obligación
 - `logout()` -> destruye sesión
 
 La autenticación sigue un flujo claro:
 
 1. usuario entra al login,
 2. si necesita registro, pasa a la pantalla de alta,
-3. luego inicia sesión y, si aplica, cambia la contraseña temporal,
-4. finalmente accede al dashboard.
+3. luego inicia sesión y, si aplica, cambia la contraseña temporal antes de entrar al dashboard,
+4. finalmente accede al panel principal según su rol.
 
 ## 4. `DashboardController`
 

@@ -124,4 +124,38 @@ class Usuario extends Model
             'requiere_cambio_pwd' => 0,
         ]);
     }
+
+    // HU-02 Esc.5: genera un token de recuperación válido por 30 minutos
+    public function generarTokenRecuperacion(int $usuarioId): string
+    {
+        $token = bin2hex(random_bytes(32));
+        $expira = date('Y-m-d H:i:s', strtotime('+30 minutes'));
+
+        $stmt = $this->db->prepare(
+            "INSERT INTO tokens_recuperacion (usuario_id, token, expira_en) VALUES (:usuario_id, :token, :expira_en)"
+        );
+        $stmt->execute(['usuario_id' => $usuarioId, 'token' => $token, 'expira_en' => $expira]);
+
+        return $token;
+    }
+
+    // HU-02 Esc.5: busca un token válido (no usado, no vencido) y devuelve el usuario asociado
+    public function buscarPorTokenValido(string $token): array|false
+    {
+        $stmt = $this->db->prepare(
+            "SELECT u.* FROM tokens_recuperacion t
+             INNER JOIN usuarios u ON u.id = t.usuario_id
+             WHERE t.token = :token AND t.usado = 0 AND t.expira_en >= NOW()
+             LIMIT 1"
+        );
+        $stmt->execute(['token' => $token]);
+        return $stmt->fetch();
+    }
+
+    // Marca un token de recuperación como usado (evita reutilizarlo)
+    public function marcarTokenUsado(string $token): void
+    {
+        $stmt = $this->db->prepare("UPDATE tokens_recuperacion SET usado = 1 WHERE token = :token");
+        $stmt->execute(['token' => $token]);
+    }
 }

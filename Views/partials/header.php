@@ -8,8 +8,6 @@ $esAdministrador = $rolId === 1;
 $moduloActual = explode('/', trim($_SERVER['REQUEST_URI'] ?? '', '/'))[0] ?? '';
 $moduloActual = explode('?', $moduloActual)[0];
 
-// Si la petición viene de nuestro propio JS (navegación tipo SPA), el navegador
-// ya tiene el <head> y el sidebar; solo necesitamos el contenido interno.
 $esPeticionAjax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
 if ($esPeticionAjax) {
     return;
@@ -18,12 +16,12 @@ if ($esPeticionAjax) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= htmlspecialchars($tituloPagina) ?> - MyPetts</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= htmlspecialchars($tituloPagina) ?> - MyPetts</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
@@ -42,9 +40,9 @@ if ($esPeticionAjax) {
                 <span class="icono">📅</span><span>Citas</span>
             </a>
             <?php if ($esAdministrador): ?>
-            <a href="/usuario" class="<?= $moduloActual === 'usuario' ? 'activo' : '' ?>">
-                <span class="icono">👥</span><span>Usuarios</span>
-            </a>
+                <a href="/usuario" class="<?= $moduloActual === 'usuario' ? 'activo' : '' ?>">
+                    <span class="icono">👥</span><span>Usuarios</span>
+                </a>
             <?php endif; ?>
         </nav>
         <a href="/auth/logout" class="cerrar-sesion" data-recarga-completa>
@@ -54,9 +52,9 @@ if ($esPeticionAjax) {
 
     <main id="contenido-principal" class="contenedor">
 <?php else: ?>
-<header class="barra-nav">
-    <span class="marca">🐾 MyPetts</span>
-</header>
+    <header class="barra-nav">
+        <span class="marca">🐾 MyPetts</span>
+    </header>
 
-<main class="contenedor">
+    <main class="contenedor">
 <?php endif; ?>

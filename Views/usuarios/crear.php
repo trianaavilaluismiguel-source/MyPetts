@@ -1,43 +1,53 @@
 <?php
 $error = $error ?? null;
 $roles = $roles ?? [];
+
+$tituloPagina = 'Nuevo Usuario';
+require __DIR__ . '/../partials/header.php';
 ?>
 
-<h1>Nuevo Usuario</h1>
+<a href="/usuario" class="btn-volver">
+    <span>←</span> Volver a Usuarios
+</a>
 
-<?php if (!empty($error)): ?>
-    <p style="color:red;"><?= htmlspecialchars($error) ?></p>
-<?php endif; ?>
+<h1><?= htmlspecialchars($tituloPagina) ?></h1>
 
-<form action="/usuario/crear" method="POST">
-    <label>Nombre:<br>
-        <input type="text" name="nombre" required style="width:100%;">
-    </label><br><br>
+<div class="tarjeta" data-etiqueta="Nuevo usuario">
+    <?php if (!empty($error)): ?>
+        <p class="mensaje mensaje-error"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
 
-    <label>Correo:<br>
-        <input type="email" name="correo" required style="width:100%;">
-    </label><br><br>
+    <form action="/usuario/crear" method="POST">
+        <label>Nombre:
+            <input type="text" name="nombre" required>
+        </label>
 
-    <label>Teléfono:<br>
-        <input type="text" name="telefono" required style="width:100%;">
-    </label><br><br>
+        <label>Correo:
+            <input type="email" name="correo" required>
+        </label>
 
-    <label>Rol:<br>
-        <select name="rol_id" required>
-            <option value="">-- Selecciona --</option>
-            <?php if (!empty($roles) && is_array($roles)): ?>
-                <?php foreach ($roles as $rol): ?>
-                    <option value="<?= (int) $rol['id'] ?>"><?= htmlspecialchars($rol['nombre_rol']) ?></option>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <option value="" disabled>No hay roles disponibles</option>
-            <?php endif; ?>
-        </select>
-    </label><br><br>
+        <label>Teléfono:
+            <input type="text" name="telefono" required>
+        </label>
 
-    <p><em>Se generará una contraseña temporal automáticamente, que se mostrará al guardar.</em></p>
+        <label>Rol:
+            <select name="rol_id" required>
+                <option value="">-- Selecciona --</option>
+                <?php if (!empty($roles) && is_array($roles)): ?>
+                    <?php foreach ($roles as $rol): ?>
+                        <option value="<?= (int) $rol['id'] ?>"><?= htmlspecialchars($rol['nombre_rol']) ?></option>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <option value="" disabled>No hay roles disponibles</option>
+                <?php endif; ?>
+            </select>
+        </label>
 
-    <button type="submit">Crear usuario</button>
-</form>
+        <p><em>Se generará una contraseña temporal automáticamente, que se mostrará al guardar.</em></p>
 
-<a href="/usuario">Cancelar y volver</a>
+        <button type="submit">Crear usuario</button>
+        <a href="/usuario" class="boton inline-cancel">Cancelar</a>
+    </form>
+</div>
+
+<?php require __DIR__ . '/../partials/footer.php'; ?>

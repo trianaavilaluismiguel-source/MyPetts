@@ -9,28 +9,30 @@ class DashboardController extends Controller
     {
         $this->requiereSesion();
 
-        $nombre = $_SESSION['nombre'] ?? null;
+        $usuarioId = (int) ($_SESSION['usuario_id'] ?? 0);
+        $nombre = $_SESSION['nombre'] ?? 'Usuario';
         $rolId = $_SESSION['rol_id'] ?? null;
 
-        // Preparar datos según rol
+        $usuario = [
+            'id' => $usuarioId,
+            'nombre' => $nombre,
+            'rol_id' => $rolId,
+        ];
+
         $mascotas = [];
         $citasProximas = [];
         $totalMascotas = 0;
         $totalUsuarios = 0;
-
-        require_once __DIR__ . '/../Models/Cita.php';
-        require_once __DIR__ . '/../Models/Mascota.php';
-        require_once __DIR__ . '/../Models/Usuario.php';
 
         $citaModel = new Cita();
         $mascotaModel = new Mascota();
         $usuarioModel = new Usuario();
 
         if ((int) $rolId === 4) { // DueñoMascota
-            $mascotas = $mascotaModel->buscarPorDueno((int) $_SESSION['usuario_id']);
-            $citasProximas = $citaModel->proximasPorDueno((int) $_SESSION['usuario_id']);
+            $mascotas = $mascotaModel->buscarPorDueno($usuarioId);
+            $citasProximas = $citaModel->proximasPorDueno($usuarioId);
         } elseif ((int) $rolId === 2) { // Veterinario
-            $citasProximas = $citaModel->proximasPorVeterinario((int) $_SESSION['usuario_id']);
+            $citasProximas = $citaModel->proximasPorVeterinario($usuarioId);
         } else { // Recepcionista o Administrador
             $totalMascotas = count($mascotaModel->todosActivos());
             $totalUsuarios = count($usuarioModel->listarConRol());
@@ -38,10 +40,11 @@ class DashboardController extends Controller
         }
 
         $this->vista('dashboard/index', [
+            'usuario' => $usuario,
             'nombre' => $nombre,
             'rolId' => $rolId,
             'mascotas' => $mascotas,
-            'citasProximas' => $citasProximas,
+            'citas' => $citasProximas,
             'totalMascotas' => $totalMascotas,
             'totalUsuarios' => $totalUsuarios,
         ]);

@@ -10,7 +10,7 @@
 </head>
 <body class="auth-page">
 
-    <div class="auth-card" style="max-width: 480px;">
+    <div class="auth-card auth-card--wide">
         <div class="auth-header">
             <span class="logo">🐾 MyPetts</span>
             <h2>Crear cuenta de Dueño</h2>
@@ -29,13 +29,12 @@
                 <input type="text" id="nombre" name="nombre" placeholder="Ej. Carlos Pérez" required autofocus>
             </div>
 
-            <!-- Fila doble para Correo y Teléfono -->
-            <div style="display: flex; gap: 12px;">
-                <div class="form-group" style="flex: 1;">
+            <div class="auth-form-row">
+                <div class="form-group">
                     <label for="correo">Correo electrónico *</label>
                     <input type="email" id="correo" name="correo" placeholder="ejemplo@correo.com" required>
                 </div>
-                <div class="form-group" style="flex: 1;">
+                <div class="form-group">
                     <label for="telefono">Teléfono de contacto *</label>
                     <input type="tel" id="telefono" name="telefono" placeholder="Ej. 3001234567" required>
                 </div>

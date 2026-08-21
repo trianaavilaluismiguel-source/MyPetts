@@ -9,6 +9,7 @@ class HistorialController extends Controller
     private Mascota $mascotaModel;
 
     private const ROL_VETERINARIO = 2;
+    private const ROL_DUENO = 4;
 
     public function __construct()
     {
@@ -26,6 +27,8 @@ class HistorialController extends Controller
             $this->redireccionar('/mascota');
             return;
         }
+
+        $this->verificarPropiedad($mascota);
 
         $entradas = $this->historialModel->buscarPorMascota($mascotaId);
 
@@ -147,5 +150,15 @@ class HistorialController extends Controller
 
         $_SESSION['mensaje'] = 'La entrada clínica fue actualizada correctamente.';
         $this->redireccionar('/historial/verHistorial/' . $entrada['mascota_id']);
+    }
+
+    // Un Dueño (rol 4) solo puede ver el historial de sus propias mascotas.
+    // El resto de roles (Admin/Veterinario/Recepcionista) tiene acceso completo.
+    private function verificarPropiedad(array $mascota): void
+    {
+        if ((int) $_SESSION['rol_id'] === self::ROL_DUENO && (int) $mascota['dueno_id'] !== (int) $_SESSION['usuario_id']) {
+            http_response_code(403);
+            die('No tienes permiso para ver el historial de esta mascota.');
+        }
     }
 }

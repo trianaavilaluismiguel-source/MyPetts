@@ -45,7 +45,7 @@ require __DIR__ . '/../partials/header.php';
         </label>
 
         <button type="submit">Guardar cambios</button>
-        <a href="/historial/verHistorial/<?= (int) ($entrada['mascota_id'] ?? 0) ?>" class="boton" style="background:var(--color-borde); color:var(--color-tinta);">Cancelar</a>
+        <a href="/historial/verHistorial/<?= (int) ($entrada['mascota_id'] ?? 0) ?>" class="boton inline-cancel">Cancelar</a>
     </form>
 </div>
 

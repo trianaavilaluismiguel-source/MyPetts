@@ -3,44 +3,63 @@ $tituloPagina = 'Registrar Mascota';
 require __DIR__ . '/../partials/header.php';
 ?>
 
-<h1>Registrar Mascota</h1>
+<a href="/mascota" class="btn-volver"><span>←</span> Volver a Mascotas</a>
 
-<div class="tarjeta" data-etiqueta="Nueva mascota">
-    <?php if (!empty($error)): ?>
-        <p class="mensaje mensaje-error"><?= htmlspecialchars($error) ?></p>
-    <?php endif; ?>
+<header class="section-header">
+    <div>
+        <h1>Registrar Mascota</h1>
+        <p>Ingresa los detalles de tu nuevo integrante para llevar su expediente.</p>
+    </div>
+</header>
 
+<?php if (!empty($error)): ?>
+    <div class="auth-alert" style="margin-bottom: 20px; max-width: 650px;">
+        <?= htmlspecialchars($error) ?>
+    </div>
+<?php endif; ?>
+
+<div class="tarjeta form-container" data-etiqueta="NUEVA MASCOTA">
     <form action="/mascota/crear" method="POST">
-        <label>Nombre:
-            <input type="text" name="nombre" required>
-        </label>
+        <div class="form-grid">
+            <div class="form-group-full">
+                <label class="campo-label" for="nombre">Nombre *</label>
+                <input type="text" id="nombre" name="nombre" class="input-custom" placeholder="Ej. Firulais" required>
+            </div>
 
-        <label>Especie:
-            <input type="text" name="especie" required>
-        </label>
+            <div>
+                <label class="campo-label" for="especie">Especie *</label>
+                <input type="text" id="especie" name="especie" class="input-custom" placeholder="Ej. Perro, Gato, Pájaro" required>
+            </div>
 
-        <label>Raza:
-            <input type="text" name="raza" required>
-        </label>
+            <div>
+                <label class="campo-label" for="raza">Raza</label>
+                <input type="text" id="raza" name="raza" class="input-custom" placeholder="Ej. Labrador">
+            </div>
 
-        <label>Fecha de nacimiento:
-            <input type="date" name="fecha_nacimiento" required>
-        </label>
+            <div>
+                <label class="campo-label" for="fecha_nacimiento">Fecha de nacimiento *</label>
+                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" class="input-custom" required>
+            </div>
 
-        <label>Sexo:
-            <select name="sexo" required>
-                <option value="">-- Selecciona --</option>
-                <option value="Macho">Macho</option>
-                <option value="Hembra">Hembra</option>
-            </select>
-        </label>
+            <div>
+                <label class="campo-label" for="sexo">Sexo</label>
+                <select id="sexo" name="sexo" class="select-custom">
+                    <option value="">-- Selecciona --</option>
+                    <option value="Macho">Macho</option>
+                    <option value="Hembra">Hembra</option>
+                </select>
+            </div>
 
-        <label>Peso (kg):
-            <input type="number" name="peso" step="0.01" min="0" required>
-        </label>
+            <div class="form-group-full">
+                <label class="campo-label" for="peso">Peso (kg)</label>
+                <input type="number" step="0.1" id="peso" name="peso" class="input-custom" placeholder="Ej. 8.5">
+            </div>
+        </div>
 
-        <button type="submit">Registrar</button>
-        <a href="/mascota" class="boton" style="background:var(--color-borde); color:var(--color-tinta);">Cancelar</a>
+        <div class="form-actions">
+            <button type="submit" class="btn">Registrar Mascota</button>
+            <a href="/mascota" class="btn-cancelar">Cancelar</a>
+        </div>
     </form>
 </div>
 

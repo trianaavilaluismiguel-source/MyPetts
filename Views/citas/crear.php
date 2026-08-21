@@ -3,76 +3,97 @@ $tituloPagina = 'Agendar Cita';
 require __DIR__ . '/../partials/header.php';
 ?>
 
-<?php
-// Valores por defecto para evitar notices
-$mascotas = $mascotas ?? [];
-$veterinarios = $veterinarios ?? [];
-$error = $error ?? null;
-$sugerencias = $sugerencias ?? [];
-?>
+<a href="/cita" class="btn-volver">
+    <span>←</span> Volver a Citas
+</a>
 
-<h1>Agendar Cita</h1>
+<header class="section-header">
+    <div>
+        <h1>Agendar Cita</h1>
+        <p>Selecciona los detalles para agendar la atención veterinaria de tu mascota.</p>
+    </div>
+</header>
 
-<div class="tarjeta" data-etiqueta="Nueva cita">
-    <?php if (!empty($error)): ?>
-        <p class="mensaje mensaje-error"><?= htmlspecialchars($error) ?></p>
+<?php if (!empty($error)): ?>
+    <div class="auth-alert">
+        <?= htmlspecialchars($error) ?>
+    </div>
+<?php endif; ?>
 
-        <?php if (!empty($sugerencias)): ?>
-            <p>Próximos horarios disponibles con ese veterinario:</p>
-            <ul>
-                <?php foreach ($sugerencias as $s): ?>
-                    <li><?= htmlspecialchars($s['fecha']) ?> a las <?= htmlspecialchars(substr($s['hora'], 0, 5)) ?></li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
-    <?php endif; ?>
+<?php if (!empty($sugerencias)): ?>
+    <div class="sugerencias-horario">
+        <p>Horarios disponibles más cercanos con ese veterinario:</p>
+        <div class="sugerencias-lista">
+            <?php foreach ($sugerencias as $s): ?>
+                <span class="chip-sugerencia">
+                    <?= htmlspecialchars(date('d/m', strtotime($s['fecha']))) ?> — <?= htmlspecialchars(date('h:i A', strtotime($s['hora']))) ?>
+                </span>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
+<div class="tarjeta form-container" data-etiqueta="NUEVA CITA">
 
     <form action="/cita/crear" method="POST">
-        <label>Mascota:
-            <select name="mascota_id" required>
-                <option value="">-- Selecciona --</option>
-                <?php foreach ($mascotas as $mascota): ?>
-                    <option value="<?= $mascota['id'] ?>"><?= htmlspecialchars($mascota['nombre']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </label>
+        <div class="form-grid">
 
-        <label>Veterinario:
-            <select name="veterinario_id" required>
-                <option value="">-- Selecciona --</option>
-                <?php foreach ($veterinarios as $veterinario): ?>
-                    <option value="<?= $veterinario['id'] ?>"><?= htmlspecialchars($veterinario['nombre']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </label>
+            <div>
+                <label class="campo-label" for="mascota_id">Mascota *</label>
+                <select id="mascota_id" name="mascota_id" class="select-custom" required>
+                    <option value="">-- Selecciona --</option>
+                    <?php if (!empty($mascotas)): ?>
+                        <?php foreach ($mascotas as $m): ?>
+                            <option value="<?= (int) $m['id'] ?>"><?= htmlspecialchars($m['nombre']) ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
 
-        <label>Fecha:
-            <input type="date" name="fecha" required>
-        </label>
+            <div>
+                <label class="campo-label" for="veterinario_id">Veterinario *</label>
+                <select id="veterinario_id" name="veterinario_id" class="select-custom" required>
+                    <option value="">-- Selecciona --</option>
+                    <?php if (!empty($veterinarios)): ?>
+                        <?php foreach ($veterinarios as $v): ?>
+                            <option value="<?= (int) $v['id'] ?>"><?= htmlspecialchars($v['nombre']) ?></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </select>
+            </div>
 
-        <label>Hora:
-            <select name="hora" required>
-                <option value="">-- Selecciona --</option>
-                <option value="08:00:00">8:00 AM</option>
-                <option value="09:00:00">9:00 AM</option>
-                <option value="10:00:00">10:00 AM</option>
-                <option value="11:00:00">11:00 AM</option>
-                <option value="12:00:00">12:00 PM</option>
-                <option value="13:00:00">1:00 PM</option>
-                <option value="14:00:00">2:00 PM</option>
-                <option value="15:00:00">3:00 PM</option>
-                <option value="16:00:00">4:00 PM</option>
-                <option value="17:00:00">5:00 PM</option>
-            </select>
-        </label>
+            <div>
+                <label class="campo-label" for="fecha">Fecha *</label>
+                <input type="date" id="fecha" name="fecha" class="input-custom" required>
+            </div>
 
-        <label>Tipo de consulta:
-            <input type="text" name="tipo_consulta" required>
-        </label>
+            <div>
+                <label class="campo-label" for="hora">Hora *</label>
+                <select id="hora" name="hora" class="select-custom" required>
+                    <option value="">-- Selecciona --</option>
+                    <option value="08:00:00">08:00 AM</option>
+                    <option value="09:00:00">09:00 AM</option>
+                    <option value="10:00:00">10:00 AM</option>
+                    <option value="11:00:00">11:00 AM</option>
+                    <option value="14:00:00">02:00 PM</option>
+                    <option value="15:00:00">03:00 PM</option>
+                    <option value="16:00:00">04:00 PM</option>
+                </select>
+            </div>
 
-        <button type="submit">Agendar</button>
-        <a href="/cita" class="boton" style="background:var(--color-borde); color:var(--color-tinta);">Cancelar</a>
+            <div class="form-group-full">
+                <label class="campo-label" for="tipo_consulta">Tipo de consulta *</label>
+                <input type="text" id="tipo_consulta" name="tipo_consulta" class="input-custom" placeholder="Ej. Chequeo general, Vacunación, Urgencia..." required>
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn">Agendar Cita</button>
+            <a href="/cita" class="btn-cancelar">Cancelar</a>
+        </div>
     </form>
+
 </div>
 
 <?php require __DIR__ . '/../partials/footer.php'; ?>

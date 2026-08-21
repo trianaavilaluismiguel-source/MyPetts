@@ -51,7 +51,7 @@ $mascota = $mascota ?? [];
         </label>
 
         <button type="submit">Guardar cambios</button>
-        <a href="/mascota" class="boton" style="background:var(--color-borde); color:var(--color-tinta);">Cancelar</a>
+        <a href="/mascota" class="boton inline-cancel">Cancelar</a>
     </form>
 </div>
 

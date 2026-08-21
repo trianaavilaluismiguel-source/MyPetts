@@ -3,50 +3,66 @@ $tituloPagina = 'Reagendar Cita';
 require __DIR__ . '/../partials/header.php';
 ?>
 
-<h1>Reagendar Cita</h1>
+<a href="/cita" class="btn-volver"><span>←</span> Volver a Citas</a>
 
-<div class="tarjeta" data-etiqueta="Cita actual">
-    <p>
-        <?= htmlspecialchars($cita['fecha'] ?? '') ?> a las <?= htmlspecialchars(substr($cita['hora'] ?? '', 0, 5)) ?>
-        (<?= htmlspecialchars($cita['tipo_consulta'] ?? '') ?>)
-    </p>
+<header class="section-header">
+    <div>
+        <h1>Reagendar Cita</h1>
+    </div>
+</header>
 
-    <?php if (!empty($error)): ?>
-        <p class="mensaje mensaje-error"><?= htmlspecialchars($error) ?></p>
+<?php if (!empty($error)): ?>
+    <div class="auth-alert" style="margin-bottom: 20px;">
+        <?= htmlspecialchars($error) ?>
+    </div>
+<?php endif; ?>
 
-        <?php if (!empty($sugerencias)): ?>
-            <p>Próximos horarios disponibles con ese veterinario:</p>
-            <ul>
-                <?php foreach ($sugerencias as $s): ?>
-                    <li><?= htmlspecialchars($s['fecha']) ?> a las <?= htmlspecialchars(substr($s['hora'], 0, 5)) ?></li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
-    <?php endif; ?>
+<?php if (!empty($sugerencias)): ?>
+    <div class="sugerencias-horario">
+        <p>Horarios disponibles más cercanos con ese veterinario:</p>
+        <div class="sugerencias-lista">
+            <?php foreach ($sugerencias as $s): ?>
+                <span class="chip-sugerencia">
+                    <?= htmlspecialchars(date('d/m', strtotime($s['fecha']))) ?> — <?= htmlspecialchars(date('h:i A', strtotime($s['hora']))) ?>
+                </span>
+            <?php endforeach; ?>
+        </div>
+    </div>
+<?php endif; ?>
 
-    <form action="/cita/reagendar/<?= (int) ($cita['id'] ?? 0) ?>" method="POST">
-        <label>Nueva fecha:
-            <input type="date" name="fecha" required>
-        </label>
+<div class="tarjeta form-container" data-etiqueta="REAGENDAR CITA">
+    <div class="info-cita-box">
+        <small>Cita Actual</small>
+        <strong>📅 <?= htmlspecialchars(date('d/m/Y', strtotime($cita['fecha'] ?? 'now'))) ?> - <?= htmlspecialchars(date('h:i A', strtotime($cita['hora'] ?? 'now'))) ?></strong>
+        <p>Motivo: <?= htmlspecialchars($cita['tipo_consulta'] ?? 'Consulta médica') ?></p>
+    </div>
 
-        <label>Nueva hora:
-            <select name="hora" required>
-                <option value="">-- Selecciona --</option>
-                <option value="08:00:00">8:00 AM</option>
-                <option value="09:00:00">9:00 AM</option>
-                <option value="10:00:00">10:00 AM</option>
-                <option value="11:00:00">11:00 AM</option>
-                <option value="12:00:00">12:00 PM</option>
-                <option value="13:00:00">1:00 PM</option>
-                <option value="14:00:00">2:00 PM</option>
-                <option value="15:00:00">3:00 PM</option>
-                <option value="16:00:00">4:00 PM</option>
-                <option value="17:00:00">5:00 PM</option>
-            </select>
-        </label>
+    <form action="/cita/reagendar/<?= (int) $cita['id'] ?>" method="POST" style="display: flex; flex-direction: column; gap: 18px;">
+        <div class="form-grid">
+            <div>
+                <label for="fecha" class="campo-label">Nueva Fecha *</label>
+                <input type="date" id="fecha" name="fecha" class="input-custom" required>
+            </div>
 
-        <button type="submit">Confirmar reagendamiento</button>
-        <a href="/cita" class="boton" style="background:var(--color-borde); color:var(--color-tinta);">Cancelar</a>
+            <div>
+                <label for="hora" class="campo-label">Nueva Hora *</label>
+                <select id="hora" name="hora" class="select-custom" required>
+                    <option value="">-- Selecciona --</option>
+                    <option value="08:00:00">08:00 AM</option>
+                    <option value="09:00:00">09:00 AM</option>
+                    <option value="10:00:00">10:00 AM</option>
+                    <option value="11:00:00">11:00 AM</option>
+                    <option value="14:00:00">02:00 PM</option>
+                    <option value="15:00:00">03:00 PM</option>
+                    <option value="16:00:00">04:00 PM</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn">Confirmar reagendamiento</button>
+            <a href="/cita" class="btn-cancelar">Cancelar</a>
+        </div>
     </form>
 </div>
 

@@ -1,181 +1,321 @@
-# Contexto completo del proyecto "MyPetts"
+PROMPT PARA CONTINUAR EL DESARROLLO DE MYPETTS
 
-Estoy desarrollando **MyPetts**, un sistema de gestión veterinaria como proyecto académico para el **SENA (Colombia)**, carrera **Análisis y Desarrollo de Software (ADSO)**. Documento elaborado por: Luis Miguel Triana Ávila.
+Contexto general
 
----
+Eres un asistente de programación que debe continuar desarrollando este proyecto desde el estado actual. Este repositorio es una aplicación web de gestión veterinaria hecha en PHP puro con patrón MVC manual, sin framework, usando MySQL como base de datos y una estructura simple por carpetas.
 
-## 1. ENTORNO Y HERRAMIENTAS
+Tu tarea es mantener la arquitectura existente, respetar el código ya corregido y continuar desde la base actual sin reescribir el proyecto desde cero ni romper lo que ya funciona.
 
-- **Sistema operativo**: Ubuntu Linux (también se usa Linux Mint en otros proyectos del mismo autor)
-- **Editor**: VS Code
-- **Lenguaje backend**: PHP 8.5, servidor embebido de desarrollo (`php -S localhost:8000 -t Public`, corrido desde la raíz del proyecto)
-- **Base de datos**: MySQL, motor **InnoDB**, charset **utf8mb4**, gestionada con **DBeaver 26.1.4** (conexión local, `localhost:3306`, base de datos `mypetts`)
-- **Arquitectura**: **MVC hecho a mano** (sin framework como Laravel o Symfony), con autoload simple vía `spl_autoload_register` en `Public/index.php`
-- **Acceso a datos**: PDO (PHP Data Objects), con prepared statements en todas las consultas
-- **Gestión de dependencias**: sin Composer todavía; todo se resuelve con `require_once`
-- **Control de versiones**: no mencionado explícitamente en la conversación hasta ahora (verificar si se usa Git)
+Objetivo del sistema
 
----
+MyPetts es un sistema para una clínica veterinaria que debe permitir:
+- Registro e inicio de sesión de usuarios.
+- Gestión de roles: Administrador, Veterinario, Recepcionista y Dueño de Mascota.
+- Registro y administración de mascotas.
+- Agendamiento, reasignación y cancelación de citas.
+- Historial clínico veterinario.
+- Registro de vacunas y desparasitaciones.
+- Notificaciones y alertas.
+- Generación de reportes.
+- Dashboard con estadísticas.
 
-## 2. ESTRUCTURA DE CARPETAS ACTUAL
+Tecnologías y arquitectura
 
-```
-MYPETTS/
-├── Controllers/
-│   ├── Controller.php         (clase abstracta base)
-│   ├── AuthController.php     (login y registro)
-│   └── MascotaController.php  (CRUD de mascotas)
-│   └── CitaController.php     (agendar/reagendar/cancelar citas — recién creado, sin probar)
-├── Database/
-│   └── conexion.php           (clase Conexion, sin patrón singleton, método conectar() devuelve PDO)
-├── Models/
-│   ├── Model.php               (clase abstracta base con CRUD genérico: todos, buscarPorId, crear, actualizar, eliminar)
-│   ├── Usuario.php             (extiende Model, tabla 'usuarios')
-│   ├── Mascota.php             (extiende Model, tabla 'mascotas')
-│   └── Cita.php                (extiende Model, tabla 'citas' — recién creado, sin probar)
-├── Public/
-│   ├── index.php               (front controller / router)
-│   └── .htaccess               (reescribe todo hacia index.php)
-├── Sql/
-│   └── mypetts.sql             (script completo de creación de la BD)
-├── Views/
-│   ├── auth/
-│   │   ├── login.php
-│   │   └── registro.php
-│   ├── mascotas/
-│   │   ├── index.php
-│   │   ├── crear.php
-│   │   └── editar.php
-│   └── citas/
-│       ├── index.php           (recién creada, sin probar)
-│       ├── crear.php           (recién creada, sin probar)
-│       └── reagendar.php       (recién creada, sin probar)
-└── Documentacion/
-    ├── Diagramas/
-    ├── Mid/
-    └── Historias de usuario veterinaria.xlsx
-```
+Stack principal:
+- PHP 8.x
+- MySQL / MariaDB
+- Arquitectura MVC manual
+- Front controller en Public/index.php
+- Autoload simple de Controllers y Models
+- Vistas en Views/
+- CSS en Public/css/style.css
+- JavaScript básico en Public/js/app.js
 
-**IMPORTANTE**: las vistas de cada módulo deben ir en `Views/<modulo>/`, como **hermanas** de `Views/auth/`, nunca anidadas dentro de otra carpeta de módulo (ya tuvimos ese error una vez con `Views/auth/mascotas/` en vez de `Views/mascotas/`).
+Estructura del proyecto:
 
----
+/Controllers
+  - AuthController.php
+  - CitaController.php
+  - Controller.php
+  - DashboardController.php
+  - HistorialController.php
+  - MascotaController.php
+  - UsuarioController.php
+  - VacunaController.php
 
-## 3. BASE DE DATOS (MySQL, InnoDB, utf8mb4)
+/Models
+  - Cita.php
+  - HistorialClinico.php
+  - Mascota.php
+  - Model.php
+  - Usuario.php
+  - VacunaDesparasitacion.php
 
-### Tablas existentes
-- **roles**: `id, nombre_rol, descripcion` — catálogo de 4 roles confirmados:
-  - `1 = Administrador` — "Gestiona usuarios, reportes y estadísticas del sistema"
-  - `2 = Veterinario` — "Registra historial clínico, vacunas y atiende citas"
-  - `3 = Recepcionista` — "Gestiona mascotas y agenda de citas"
-  - `4 = DueñoMascota` — "Registra sus mascotas y agenda sus citas"
-- **usuarios**: `id, nombre, correo (UNIQUE), contrasena_hash, telefono, rol_id (FK->roles), activo, intentos_fallidos, bloqueado_hasta, requiere_cambio_pwd, creado_por (FK->usuarios), created_at, updated_at`
-- **tokens_recuperacion**: `id, usuario_id (FK), token, expira_en, usado, created_at`
-- **mascotas**: `id, dueno_id (FK->usuarios), nombre, especie, raza, fecha_nacimiento, sexo, peso, estado_salud, activa, created_at, updated_at`
-  - `estado_salud` es **ENUM('al_dia', 'pendiente_atencion')**, DEFAULT `'al_dia'` — dato clave que causó un bug hasta que lo descubrimos
-- **citas**: `id, mascota_id (FK), veterinario_id (FK->usuarios), agendada_por (FK->usuarios), fecha, hora, tipo_consulta, estado, cita_origen_id (FK->citas), motivo_cancelacion, created_at, updated_at`
-  - `UNIQUE(veterinario_id, fecha, hora)` — evita doble reserva a nivel de base de datos
-  - `estado` es **ENUM('agendada', 'cancelada', 'reagendada', 'completada')**, DEFAULT `'agendada'`
-- **historial_clinico**: `id, mascota_id (FK), cita_id (FK), veterinario_id (FK), motivo_consulta, diagnostico, tratamiento, observaciones, fecha_registro, fecha_ultima_edicion, editado_por (FK->usuarios)`
-- **vacunas_desparasitaciones**: `id, mascota_id (FK), historial_id (FK), veterinario_id (FK), tipo, nombre_producto, lote, fecha_aplicacion, fecha_proxima_dosis, aplicada_siguiente, created_at`
-- **notificaciones**: `id, usuario_id (FK), tipo, referencia_tipo, referencia_id, mensaje, estado, fecha_envio` — **existe pero aún no se está usando en el código**
-- **reportes_generados**: `id, usuario_id (FK), tipo_reporte, fecha_inicio, fecha_fin, formato_exportacion, generado_en`
+/Views
+  - auth/
+  - citas/
+  - dashboard/
+  - historial/
+  - mascotas/
+  - partials/
+  - usuarios/
+  - vacunas/
 
-### Vistas SQL de apoyo
-- `vw_estadisticas_generales`
-- `vw_alertas_vacunas`
+/Database
+  - Conexion.php
+  - config.php
 
-### Trabajo previo sobre el esquema (mayo–junio 2026)
-- Se generó una versión corregida del esquema (`mypetts_schema_v2.sql`) con STI para roles, la tabla `notificaciones`, campos faltantes y vistas de utilidad
-- Se generaron diagramas UML en draw.io: casos de uso, clases, actividades
-- Se auditó consistencia entre historias de usuario (HU-01 a HU-09), diagramas y modelo ER
+/Public
+  - index.php
+  - css/style.css
+  - js/app.js
 
----
+/Sql
+  - mypetts.sql
 
-## 4. HISTORIAS DE USUARIO (documento oficial: "Historias de Usuario Veterinaria MyPetts", FS-DOC, Centro de formación agroindustrial - La Angostura)
+/Documentacion
+  - prompt
+  - Mid/
 
-Hay 9 historias de usuario en total, cada una con varios escenarios (criterios de aceptación) con **textos exactos** que el sistema debe mostrar. Resumen:
+Patrón de la aplicación
 
-- **HU-01** (DueñoMascota): registrarse al sistema — 5 escenarios (registro exitoso, correo duplicado, datos incompletos, contraseña débil, confirmación no coincide)
-- **HU-02** (Administrador/Veterinario/Recepcionista/DueñoMascota): iniciar sesión — 5 escenarios (login exitoso, credenciales incorrectas, cuenta desactivada, bloqueo por intentos fallidos + **notificación al administrador**, recuperación de contraseña con token de 30 min)
-- **HU-03** (DueñoMascota/Recepcionista): gestionar mascotas — 7 escenarios (registrar, editar, datos incompletos, listar con edad calculada, sin mascotas, búsqueda/filtro por nombre/especie/N° registro, baja lógica)
-- **HU-04** (DueñoMascota/Recepcionista): agendar/consultar/reagendar/cancelar citas — 7 escenarios (agendar exitoso, horario no disponible con 3 sugerencias, consultar citas, sin citas, cancelación exitosa >24h, cancelación tardía <24h, reagendar)
-- **HU-05** (Veterinario): historial clínico, vacunas y desparasitaciones — 5 escenarios (registrar entrada clínica, consultar historial, sin historial previo, registrar vacuna/desparasitación, alertas de vencimiento ≤30 días en amarillo/rojo)
-- **HU-06**: recordatorios automáticos por correo (citas, vacunas próximas, vacunas vencidas) — **no detallado a fondo todavía en esta conversación**
-- **HU-07** (Administrador): gestión de cuentas de usuario (crear, editar, activar/desactivar, resetear contraseña) — **no detallado a fondo todavía**
-- **HU-08**: reportes exportables (citas, vacunas aplicadas, mascotas atendidas) en PDF/Excel — **no detallado a fondo todavía**
-- **HU-09** (Administrador): panel de estadísticas con comparativos entre períodos — **no detallado a fondo todavía**
+La entrada principal es Public/index.php. Allí se parsea la URL, se determina el controller y la acción, y se ejecuta la lógica correspondiente.
 
-> Nota importante: los criterios de aceptación de HU-01 a HU-05 incluyen **mensajes de texto exactos** que el sistema debe mostrar al usuario ante cada escenario. Es clave revisar el Excel original (`Historias de usuario veterinaria.xlsx`) antes de dar por cerrada cualquier historia, porque el cumplimiento literal del texto suele ser parte de lo evaluado.
+Ejemplo:
+- /auth/login
+- /dashboard
+- /mascotas/crear
+- /citas/reagendar/5
 
----
+La resolución se hace via autoload y enrutado básico. El controller base se encuentra en Controllers/Controller.php.
 
-## 5. CONVENCIONES DE CÓDIGO ESTABLECIDAS
+Flujo base de controllers:
+- Cada controller extiende Controller.
+- El controller base tiene helpers protegidos para:
+  - iniciarSesion()
+  - vista()
+  - redireccionar()
+  - json()
+  - requiereSesion()
 
-- **Router**: patrón de URL `/controlador/accion/parametro` (ej: `/auth/login` → `AuthController->login()`). URL vacía → `AuthController->index()`.
-- El router pasa el parámetro de la URL como **string**; como no se usa `declare(strict_types=1)`, PHP lo convierte automáticamente a `int` cuando el método lo requiere (coerción de tipos). Si en el futuro se activa `strict_types`, hay que castear manualmente en `index.php`.
-- Nombre de clase de Controller = `ucfirst(nombre en URL) + 'Controller'`
-- Las vistas se cargan con `$this->vista('carpeta/archivo')` desde dentro de un Controller (heredado de `Controller.php`), que hace `extract($datos)` y luego `require` de `Views/carpeta/archivo.php`
-- `Controller.php` (clase abstracta base) ya provee: `vista()`, `redireccionar()`, `json()`, y `requiereSesion(array $rolesPermitidos = [])` (verifica sesión activa y, opcionalmente, restringe por rol; redirige a `/auth` si no hay sesión)
-- Contraseñas: `password_hash()` al guardar, `password_verify()` al hacer login (nunca texto plano)
-- Sesión: `$_SESSION['usuario_id']`, `$_SESSION['nombre']`, `$_SESSION['rol_id']`
-- Mensajes de confirmación (flash messages) se manejan guardando `$_SESSION['mensaje']` antes de redirigir, y leyéndolo/limpiándolo en el `index()` del módulo correspondiente
-- Comentarios en el código referencian el número de HU y escenario que implementan (ej: `// HU-01 Esc.2: correo ya registrado`)
-- Estilo de código: PHP legible, sin minificar, nombres de variables completos en español
-- **El usuario es un estudiante (aprendiz SENA)**: las explicaciones deben ser sencillas, paso a paso, sin dar por sentado conocimientos avanzados de POO
-- Todas las salidas HTML usan `htmlspecialchars()` para prevenir XSS
-- Baja lógica en vez de `DELETE`: los registros nunca se eliminan físicamente, solo se marcan como inactivos (`activa = 0` en mascotas, `estado = 'cancelada'`/`'reagendada'` en citas), conservando el historial
+Reglas de arquitectura que debes respetar
 
----
+1. No reescribas todo el proyecto.
+2. Mantén el MVC manual ya establecido.
+3. Usa el patrón de clases existente: Controller como base y cada módulo como controller específico.
+4. Los modelos heredan de Model base y usan la propiedad $tabla.
+5. Las vistas deben seguir siendo cargadas con $this->vista('ruta', [...]) desde los controladores.
+6. La lógica de sesión debe seguir centralizada en Controller.php y no duplicarse en cada controller.
+7. El proyecto usa MySQL con PDO; no cambies la conexión a un framework o a otra tecnología.
+8. Mantén la configuración centralizada en Database/config.php.
+9. Si vas a crear nuevos módulos, sigue el estilo y nomenclatura actual en español.
+10. Mantén nombres de archivos y clases consistentes con la convención actual.
 
-## 6. METODOLOGÍA DE TRABAJO PREFERIDA
+Estado actual del proyecto (ya corregido)
 
-- Un tema/archivo a la vez, sin adelantarse a los siguientes pasos (aunque en la práctica reciente se han agrupado varios archivos relacionados de un mismo módulo cuando el usuario lo pide explícitamente)
-- Explicaciones simples y claras (es estudiante, no asumir conocimiento avanzado)
-- Código completo y funcional en cada archivo, no fragmentos sueltos — siempre se entregan los archivos completos, no diffs
-- Cuando surge un error, se pide ver el mensaje completo de la terminal (no solo la pantalla del navegador) para diagnosticar con precisión antes de proponer una solución
-- Errores recurrentes ya identificados y resueltos: problemas de mayúsculas/minúsculas en nombres de archivo (`require_once`) por trabajar en Linux (sensible a mayúsculas, a diferencia de Windows); valores ENUM de MySQL que no coinciden con lo que el código PHP intenta insertar
+El proyecto ya quedó estabilizado en varios puntos clave. Debes trabajar sobre eso y no perderlo.
 
----
+Correcciones aplicadas y ya validadas:
+- Se centralizó la sesión en Controller.php.
+- Se eliminó la duplicación de métodos y el conflicto de visibilidad en AuthController relacionado con iniciarSesion().
+- Se dejaron configuraciones de conexión en Database/config.php usando variables de entorno con valores por defecto seguros.
+- Se limpiaron estilos duplicados en Public/css/style.css.
+- Se dejó una base más consistente para las vistas.
+- Se validó sintaxis PHP con php -l sobre los archivos clave sin errores.
 
-## 7. ESTADO ACTUAL DEL PROYECTO (lo que ya funciona, probado por el usuario)
+Estado funcional actual:
+- La app ya tiene su estructura y rutas funcionando.
+- La autenticación ya fue corregida y estabilizada.
+- La base de datos ya está preparada para empezar desde cero con usuarios de prueba.
+- La sesión, validaciones y flujo de login/registro son la base sobre la que continuar.
 
-### ✅ Completado y probado de punta a punta
-- Conexión PDO a MySQL
-- Router y autoload básico
-- **HU-01** (registro): completo
-- **HU-02** (login multi-rol): completo, incluyendo el contador de intentos fallidos con bloqueo temporal de 5 minutos (Esc.4) — probado y confirmado funcionando
-- **HU-03** (CRUD de mascotas): completo — crear, editar, buscar (por nombre, especie o N° de registro), baja lógica — probado de punta a punta. Ajustes finos ya aplicados: raza y peso obligatorios, mensajes de confirmación vía flash message, edad calculada, estado de salud mostrado en texto legible ("Al día" / "Pendiente de atención")
+Base de datos
 
-### 🔧 Recién construido, pendiente de probar
-- **HU-04** (Citas): Model (`Cita.php`), Controller (`CitaController.php`) y las 3 vistas (`citas/index.php`, `citas/crear.php`, `citas/reagendar.php`) ya están escritos, pero **todavía no se ha probado el flujo completo** (agendar, ver en el listado, reagendar, cancelar)
-  - Horario de atención definido: 8:00 AM a 6:00 PM, citas de 1 hora (10 franjas por día)
-  - Sugerencia de horarios libres (Esc.2): busca en el día pedido y, si no alcanza, sigue buscando hasta 14 días hacia adelante
-  - Reagendar (Esc.7): NO actualiza la cita existente — crea una nueva fila enlazada por `cita_origen_id`, y marca la original como `'reagendada'`, para conservar el historial completo
-  - Cancelar (Esc.5/Esc.6): valida que falten más de 24 horas; si no, muestra el mensaje de cancelación tardía sin cancelar
-  - **Decisión pendiente tomada por el usuario**: por ahora, el envío de notificaciones/correos al confirmar, cancelar o reagendar citas (que pide HU-04) se **omite por completo** — queda pospuesto para más adelante
+La base se encuentra en MySQL con base de datos llamada mypetts y esquema definido en Sql/mypetts.sql.
 
----
+Tablas principales:
+- roles
+- usuarios
+- tokens_recuperacion
+- mascotas
+- citas
+- historial_clinico
+- vacunas_desparasitaciones
+- notificaciones
+- reportes_generados
+- vw_estadisticas_generales (vista auxiliar para indicadores)
 
-## 8. PENDIENTES / PRÓXIMOS PASOS
+Relaciones clave:
+- usuarios -> roles
+- mascotas -> usuarios (dueño)
+- citas -> mascotas, veterinarios, usuarios que agendan
+- historial_clinico -> mascotas, citas, veterinarios
+- vacunas_desparasitaciones -> mascotas, historial, veterinarios
+- notificaciones -> usuarios
+- reportes_generados -> usuarios
 
-1. **Probar HU-04 de punta a punta** (agendar, listar, reagendar, cancelar) — es el paso inmediato siguiente
-2. **HU-02 Esc.4**: falta la notificación al administrador cuando se bloquea una cuenta por intentos fallidos (la tabla `notificaciones` existe pero no se usa todavía; ya se agregó el método `Usuario::buscarPorRol()` que se necesitaba para esto, así que ya no debería tomar mucho esfuerzo)
-3. **HU-02 Esc.5**: recuperación de contraseña con token de 30 minutos (tabla `tokens_recuperacion` ya existe, falta toda la lógica)
-4. **HU-05**: historial clínico, vacunas y desparasitaciones (incluye alertas visuales de vencimiento en amarillo/rojo)
-5. **HU-06**: recordatorios automáticos por correo
-6. **HU-07**: gestión de cuentas de usuario por el Administrador
-7. **HU-08**: reportes exportables en PDF/Excel
-8. **HU-09**: panel de estadísticas para Administrador
-9. **Ruta /dashboard**: actualmente `AuthController::login()` redirige ahí tras un login exitoso, pero el Controller no existe (da 404). La idea acordada con el usuario es que el dashboard sea una **página contenedora con menú según el rol** (no reemplaza los módulos existentes, solo los organiza como puntos de entrada) — se construirá cuando se trabaje el tema de estilos
-10. **Estilos CSS**: las vistas actuales son HTML simple sin estilos (excepto `auth.css`/`auth.php` para login/registro, que ya tiene animación de panel deslizante con SVGs y transiciones `cubic-bezier`, hecho en mayo 2026)
-11. Revisar si conviene introducir Composer y/o un sistema de control de versiones (Git) si aún no se está usando
+Usuarios de prueba actuales en la base
 
----
+Se dejó una base de datos vacía de negocio con solo 4 usuarios de prueba para arrancar desde cero:
 
-## 9. CÓMO RETOMAR EL TRABAJO
+1. Administrador
+   - correo: admin@mypetts.com
+   - contraseña: Admin123
+   - rol: 1
 
-Si estás retomando este proyecto en una nueva conversación, lo más útil es:
-1. Confirmar en qué archivo/historia de usuario se quedó exactamente
-2. Pedir ver el contenido actual de los archivos relevantes antes de proponer cambios (nunca asumir el contenido de un archivo que no se ha visto)
-3. Seguir las convenciones ya establecidas (sección 5) para que el código nuevo encaje sin fricciones con el existente
-4. Ante cualquier error, pedir el mensaje completo de la terminal donde corre `php -S localhost:8000 -t Public`, no solo la captura del navegador
+2. Veterinario
+   - correo: vet@mypetts.com
+   - contraseña: Vet12345
+   - rol: 2
+
+3. Recepcionista
+   - correo: recepcionista@mypetts.com
+   - contraseña: Recep123
+   - rol: 3
+
+4. Dueño de mascota
+   - correo: dueno@mypetts.com
+   - contraseña: Dueno123
+   - rol: 4
+
+Estas credenciales deben usarse como punto de partida para pruebas y validación de login.
+
+Modelos clave y su propósito
+
+- Usuario.php
+  - registro, validación de contraseña, búsqueda por correo, roles, activación, reset, actualización de contraseña, solicitud de cambio obligatorio.
+
+- Mascota.php
+  - gestión de mascotas del dueño, carga por propietario, búsquedas, activación/desactivación.
+
+- Cita.php
+  - agenda de citas, reservas, reagendación y estado.
+
+- HistorialClinico.php
+  - control del historial clínico de cada mascota.
+
+- VacunaDesparasitacion.php
+  - registro de vacunas y desparasitaciones con fechas de dosis y alertas.
+
+- Model.php
+  - contiene la lógica base de CRUD para la conexión y manejo SQL.
+
+Controladores clave
+
+- AuthController.php
+  - login, logout, registro, cambio de contraseña, mostrar formularios.
+
+- DashboardController.php
+  - carga el panel principal según el rol.
+
+- MascotaController.php
+  - CRUD de mascotas.
+
+- CitaController.php
+  - CRUD y flujo de agendamiento de citas.
+
+- HistorialController.php
+  - manejo de historial clínico.
+
+- VacunaController.php
+  - manejo de vacunas y desparasitaciones.
+
+- UsuarioController.php
+  - administración de usuarios por parte del administrador.
+
+- Controller.php
+  - base con helpers comunes, validaciones globales y sesión.
+
+Vistas importantes
+
+- auth/login.php
+- auth/registro.php
+- auth/cambiar-password.php
+- dashboard/index.php
+- mascotas/index.php
+- mascotas/crear.php
+- mascotas/editar.php
+- citas/index.php
+- citas/crear.php
+- citas/reagendar.php
+- historial/index.php
+- historial/crear.php
+- historial/editar.php
+- usuarios/index.php
+- usuarios/crear.php
+- usuarios/editar.php
+- vacunas/crear.php
+- vacunas/index.php
+
+Reglas funcionales importantes
+
+- La contraseña en registro debe tener mínimo 8 caracteres, incluyendo letras y números.
+- El correo debe ser único.
+- Los usuarios pueden estar bloqueados temporalmente después de varios intentos fallidos.
+- Si un usuario requiere cambio de contraseña, debe ser obligado a cambiarla al iniciar sesión.
+- El sistema se basa en roles y permisos por identidad.
+- La sesiones deben iniciarse con session_start() si no existe una activa.
+
+Problemas conocidos y decisiones ya tomadas
+
+Se identificó y corrigió un problema real: el método iniciarSesion() estaba duplicado o redefinido en el AuthController con una firma incompatible con el método del Controller base. Esto provocaba errores de compatibilidad y quebraba el flujo de autenticación. La solución fue centralizar la lógica en la clase base y que el resto herede de ahí.
+
+Otro punto importante: se evitaron dependencias y valores hardcodeados, centralizando datos de conexión en Database/config.php.
+
+También se eliminó CSS redundante y se dejó una base visual más limpia para continuar.
+
+Qué debes hacer en el siguiente trabajo
+
+1. Mantener la arquitectura actual, sin reescribir el sistema a otro framework.
+2. Revisar módulos faltantes o incompletos y completarlos con la misma lógica del proyecto.
+3. Validar que cada nueva acción conserve el flujo de sesión y permisos.
+4. Mantener el idioma español del sistema y de mensajes.
+5. Priorizar funcionalidad real sobre estética sin perder consistencia.
+6. Cuando modifiques estructuras de BD, hazlo con cuidado y documenta la migración o ajuste.
+7. Revisa el archivo Sql/mypetts.sql como referencia del esquema base.
+8. Si haces cambios importantes en la estructura, deja los ajustes documentados claramente.
+
+Recomendaciones para continuidad
+
+- Conviene continuar por el flujo de módulos en este orden:
+  1. Login/registro/autenticación
+  2. Dashboard y roles
+  3. Mascotas
+  4. Citas
+  5. Historial clínico
+  6. Vacunas y desparasitaciones
+  7. Notificaciones y reportes
+
+- Las pruebas deben hacerse con la base limpia y con los 4 usuarios demo ya sembrados.
+- No agregues librerías complejas si no son estrictamente necesarias.
+- Usa consultas preparadas con PDO para evitar inyección SQL.
+- Mantén el estilo de nombres en español y camelCase/estilo PHP consistente.
+
+Validación requerida por cada cambio
+
+Cada vez que modifiques código PHP, debes validar al menos con:
+- php -l archivo.php
+- y, si aplica, pruebas manuales de flujo de navegación o login.
+
+Si haces cambios de base de datos, valida también:
+- que el esquema siga siendo compatible con la app,
+- que no rompas foreign keys ni datos existentes,
+- y que el flujo de login siga funcionando con los usuarios de prueba.
+
+Instrucción directa para la IA que siga
+
+Continúa desarrollando MyPetts desde esta base. Debes mantener la estructura actual, respetar la lógica ya corregida, trabajar con la base de datos MySQL llamada mypetts, y usar los usuarios de prueba ya definidos como referencia para pruebas. No conviertas el proyecto a otra tecnología ni lo reescribas. Avanza conservando el diseño MVC manual, corrige bugs reales, valida cada cambio y documenta lo que hagas.
+
+La meta es dejar el proyecto funcional, ordenado y listo para seguir creciendo con seguridad.
+
+Resumen final para continuar
+
+- Proyecto: MyPetts
+- Tipo: sistema veterinario MVC en PHP puro
+- Stack: PHP 8 + MySQL + PDO + MVC manual
+- Entrada: Public/index.php
+- Base de datos: mypetts
+- Usuarios demo: 4 usuarios activos con roles definidos
+- Estado: proyecto estabilizado y listo para continuar con módulos faltantes o mejoras
+
+Si vas a continuar el desarrollo, hazlo paso por paso, preservando la arquitectura existente, validando cada cambio y manteniendo la lógica de roles y autenticación coherente con la base que ya quedó corregida.

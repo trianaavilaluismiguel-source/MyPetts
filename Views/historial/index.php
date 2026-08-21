@@ -15,7 +15,7 @@ require __DIR__ . '/../partials/header.php';
 <?php endif; ?>
 
 <div class="tarjeta" data-etiqueta="Entradas registradas">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+    <div class="section-toolbar">
         <a href="/mascota">← Volver a mascotas</a>
         <?php if ((int) ($rolActual ?? 0) === 2): ?>
             <a href="/historial/mostrarCrear/<?= (int) $mascota['id'] ?>" class="boton">Registrar nueva entrada</a>
@@ -27,7 +27,7 @@ require __DIR__ . '/../partials/header.php';
         <p>Esta mascota aún no tiene historial clínico registrado.</p>
     <?php else: ?>
         <?php foreach ($entradas as $entrada): ?>
-            <div style="border:1px solid var(--color-borde); border-radius:var(--radio); padding:16px; margin-bottom:14px;">
+            <div class="historial-card">
                 <p><strong>Fecha:</strong> <?= htmlspecialchars($entrada['fecha_registro']) ?></p>
                 <p><strong>Veterinario:</strong> <?= htmlspecialchars($entrada['nombre_veterinario']) ?></p>
                 <p><strong>Motivo de consulta:</strong> <?= htmlspecialchars($entrada['motivo_consulta']) ?></p>

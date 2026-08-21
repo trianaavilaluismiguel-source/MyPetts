@@ -3,6 +3,7 @@ require_once __DIR__ . '/Controller.php';
 require_once __DIR__ . '/../Models/Cita.php';
 require_once __DIR__ . '/../Models/Mascota.php';
 require_once __DIR__ . '/../Models/Usuario.php';
+require_once __DIR__ . '/../Helpers/Mailer.php';
 
 class CitaController extends Controller
 {
@@ -86,8 +87,44 @@ class CitaController extends Controller
             'estado'         => 'agendada',
         ]);
 
+        // HU-04 Esc.1: confirmación por correo al dueño y al veterinario asignado
+        $cuerpoConfirmacion = "<p>Se agendó una cita para el " . date('d/m/Y', strtotime($fecha)) . " a las " . date('h:i A', strtotime($hora)) . ".</p><p>Tipo de consulta: " . htmlspecialchars($tipoConsulta) . "</p>";
+        $this->notificarDueno((int) $mascotaId, 'Cita agendada - MyPetts', $cuerpoConfirmacion);
+        $this->notificarVeterinario((int) $veterinarioId, 'Nueva cita asignada - MyPetts', $cuerpoConfirmacion);
+
         $_SESSION['mensaje'] = 'La cita fue agendada correctamente.';
         $this->redireccionar('/cita');
+    }
+
+    // Notifica por correo al dueño de la mascota asociada a una cita
+    private function notificarDueno(int $mascotaId, string $asunto, string $cuerpoHtml): void
+    {
+        $mascota = $this->mascotaModel->buscarPorId($mascotaId);
+        if (!$mascota) {
+            return;
+        }
+        $dueno = $this->usuarioModel->buscarPorId((int) $mascota['dueno_id']);
+        if (!$dueno) {
+            return;
+        }
+        Mailer::enviar($dueno['correo'], $asunto, $cuerpoHtml);
+    }
+
+    // Notifica por correo al veterinario asignado a una cita
+    private function notificarVeterinario(int $veterinarioId, string $asunto, string $cuerpoHtml): void
+    {
+        $veterinario = $this->usuarioModel->buscarPorId($veterinarioId);
+        if ($veterinario) {
+            Mailer::enviar($veterinario['correo'], $asunto, $cuerpoHtml);
+        }
+    }
+
+    // Notifica por correo a todo el personal de recepción
+    private function notificarRecepcion(string $asunto, string $cuerpoHtml): void
+    {
+        foreach ($this->usuarioModel->buscarPorRol(3) as $recepcionista) {
+            Mailer::enviar($recepcionista['correo'], $asunto, $cuerpoHtml);
+        }
     }
 
     // Vuelve a mostrar el formulario de creación con el error (y sugerencias, si aplica)
@@ -118,6 +155,8 @@ class CitaController extends Controller
             return;
         }
 
+        $this->verificarPropiedad($cita);
+
         $fechaHoraCita = new DateTime($cita['fecha'] . ' ' . $cita['hora']);
         $ahora = new DateTime();
         $horasRestantes = ($fechaHoraCita->getTimestamp() - $ahora->getTimestamp()) / 3600;
@@ -131,6 +170,12 @@ class CitaController extends Controller
 
         // HU-04 Esc.5: cancelación exitosa
         $this->citaModel->cancelar($id, 'Cancelada por el usuario');
+
+        $cuerpoCancelacion = "<p>La cita del " . date('d/m/Y', strtotime($cita['fecha'])) . " a las " . date('h:i A', strtotime($cita['hora'])) . " fue cancelada.</p>";
+        $this->notificarDueno((int) $cita['mascota_id'], 'Cita cancelada - MyPetts', $cuerpoCancelacion);
+        $this->notificarVeterinario((int) $cita['veterinario_id'], 'Cita cancelada - MyPetts', $cuerpoCancelacion);
+        $this->notificarRecepcion('Cita cancelada - MyPetts', $cuerpoCancelacion);
+
         $_SESSION['mensaje'] = 'La cita fue cancelada correctamente.';
         $this->redireccionar('/cita');
     }
@@ -146,6 +191,8 @@ class CitaController extends Controller
             return;
         }
 
+        $this->verificarPropiedad($cita);
+
         $this->vista('citas/reagendar', ['cita' => $cita]);
     }
 
@@ -157,6 +204,13 @@ class CitaController extends Controller
         $cita = $this->citaModel->buscarPorId($id);
         if (!$cita) {
             $this->redireccionar('/cita');
+            return;
+        }
+
+        $this->verificarPropiedad($cita);
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->vista('citas/reagendar', ['cita' => $cita]);
             return;
         }
 
@@ -174,10 +228,29 @@ class CitaController extends Controller
             return;
         }
 
-        // Se le pasa la cita ORIGINAL completa: el Model la necesita para copiar
-        // mascota_id, veterinario_id, tipo_consulta, etc. hacia la fila nueva
         $this->citaModel->reagendar($cita, $nuevaFecha, $nuevaHora);
+
+        $cuerpoReagendado = "<p>La cita fue reagendada para el " . date('d/m/Y', strtotime($nuevaFecha)) . " a las " . date('h:i A', strtotime($nuevaHora)) . ".</p>";
+        $this->notificarDueno((int) $cita['mascota_id'], 'Cita reagendada - MyPetts', $cuerpoReagendado);
+        $this->notificarVeterinario((int) $cita['veterinario_id'], 'Cita reagendada - MyPetts', $cuerpoReagendado);
+        $this->notificarRecepcion('Cita reagendada - MyPetts', $cuerpoReagendado);
+
         $_SESSION['mensaje'] = 'La cita fue reagendada correctamente.';
         $this->redireccionar('/cita');
+    }
+
+    // Un Dueño (rol 4) solo puede cancelar/reagendar citas de sus propias mascotas.
+    // El resto de roles (Admin/Veterinario/Recepcionista) tiene acceso completo.
+    private function verificarPropiedad(array $cita): void
+    {
+        if ((int) $_SESSION['rol_id'] !== self::ROL_DUENO) {
+            return;
+        }
+
+        $mascota = $this->mascotaModel->buscarPorId((int) $cita['mascota_id']);
+        if (!$mascota || (int) $mascota['dueno_id'] !== (int) $_SESSION['usuario_id']) {
+            http_response_code(403);
+            die('No tienes permiso para modificar esta cita.');
+        }
     }
 }

@@ -43,9 +43,14 @@ $accion = $partes[1] ?? 'index';
 
 Por ejemplo:
 
+- `/auth` -> `AuthController::index()`
 - `/auth/login` -> `AuthController::login()`
+- `/auth/mostrarRegistro` -> `AuthController::mostrarRegistro()`
+- `/auth/mostrarCambioPassword` -> `AuthController::mostrarCambioPassword()`
+- `/auth/cambiarPassword` -> `AuthController::cambiarPassword()`
 - `/mascota/mostrarCrear` -> `MascotaController::mostrarCrear()`
 - `/cita/reagendar/12` -> `CitaController::reagendar(12)`
+- `/dashboard` -> `DashboardController::index()`
 
 ## 4. Autoload
 

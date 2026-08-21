@@ -72,9 +72,18 @@ class Mascota extends Model
     }
 
     // HU-03 Esc.4: calcula la edad en años/meses a partir de la fecha de nacimiento
-    public static function calcularEdad(string $fechaNacimiento): string
+    public static function calcularEdad(?string $fechaNacimiento): string
     {
-        $nacimiento = new DateTime($fechaNacimiento);
+        if (empty($fechaNacimiento)) {
+            return 'N/A';
+        }
+
+        try {
+            $nacimiento = new DateTime($fechaNacimiento);
+        } catch (Exception $e) {
+            return 'N/A';
+        }
+
         $hoy = new DateTime();
         $diferencia = $hoy->diff($nacimiento);
 
